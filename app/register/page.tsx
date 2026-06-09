@@ -1,124 +1,112 @@
 // app/register/page.tsx
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { createClient } from "@/utils/supabase/client"; // Supabaseクライアントの読み込み
 
 export default function RegisterPage() {
+    const [email, setEmail] = useState("");
+    const [password, setPassword] = useState("");
+    const [schoolName, setSchoolName] = useState("");
+    const [loading, setLoading] = useState(false);
     const router = useRouter();
+    const supabase = createClient();
 
-    const handleRegisterSubmit = (e: React.FormEvent) => {
+    const handleRegister = async (e: React.FormEvent) => {
         e.preventDefault();
-        // 登録成功したと仮定してログイン画面、またはダッシュボードへ
+        setLoading(true);
+
+        // 1. Supabase Authでユーザーを作成
+        const { data, error } = await supabase.auth.signUp({
+            email,
+            password,
+            options: {
+                data: {
+                    school_name: schoolName, // メタデータとしてスクール名を保存
+                },
+            },
+        });
+
+        if (error) {
+            alert(error.message);
+            setLoading(false);
+            return;
+        }
+
+        // 2. 登録成功後、ダッシュボードへ移動
         router.push("/dashboard");
+        router.refresh();
     };
 
     return (
-        <div className="min-h-screen bg-slate-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8 text-slate-800 relative overflow-hidden">
-            <div className="absolute top-0 right-0 -w-64 h-64 bg-red-300/20 rounded-full filter blur-3xl pointer-events-none"></div>
-            <div className="absolute bottom-0 left-0 -w-64 h-64 bg-orange-300/20 rounded-full filter blur-3xl pointer-events-none"></div>
-
-            <div className="sm:mx-auto w-full max-w-md z-10">
-                <div className="flex justify-center mb-4">
-                    <div className="w-12 h-12 bg-gradient-to-tr from-red-500 to-orange-500 rounded-2xl flex items-center justify-center text-white font-black text-2xl shadow-lg shadow-orange-500/20">
-                        L
-                    </div>
+        <div className="min-h-screen bg-linear-to-br from-[#ff3b30] via-[#ff6b2b] to-[#ff9500] flex flex-col justify-center py-12 px-6 lg:px-8 text-black selection:bg-black/10 selection:text-black">
+            <div className="sm:mx-auto w-full max-w-md text-center">
+                <div className="w-21 h-21 bg-white rounded-full flex items-center justify-center shadow-xl mx-auto mb-6 border border-white/20">
+                    <span className="text-4xl font-black italic tracking-tighter bg-linear-to-br from-[#ff3b30] to-[#ff6b2b] bg-clip-text text-transparent">
+                        キ
+                    </span>
                 </div>
-                <h2 className="text-center text-3xl font-black tracking-tight text-slate-950">
-                    アカウントの新規作成
+                <h2 className="text-2xl font-black tracking-tight text-black">
+                    管理者アカウントの作成
                 </h2>
-                <p className="mt-2 text-center text-sm text-slate-500">
-                    すでにアカウントをお持ちですか？{" "}
-                    <Link
-                        href="/login"
-                        className="font-semibold text-orange-600 hover:text-red-500 transition"
-                    >
-                        ログインする
-                    </Link>
-                </p>
             </div>
 
-            <div className="mt-8 sm:mx-auto w-full max-w-md z-10">
-                <div className="bg-white py-8 px-4 shadow-xl shadow-slate-200/50 sm:rounded-2xl sm:px-10 border border-slate-200/60">
-                    <form className="space-y-5" onSubmit={handleRegisterSubmit}>
+            <div className="mt-8 sm:mx-auto w-full max-w-100">
+                <div className="bg-white/90 backdrop-blur-sm py-10 px-8 shadow-2xl rounded-2xl border border-white/50">
+                    <form className="space-y-5" onSubmit={handleRegister}>
                         <div>
-                            <label
-                                htmlFor="schoolName"
-                                className="block text-sm font-bold text-slate-700"
-                            >
-                                スクール名 / 組織名
+                            <label className="block text-xs font-bold tracking-wider text-slate-500 uppercase mb-2">
+                                スクール名
                             </label>
-                            <div className="mt-1">
-                                <input
-                                    id="schoolName"
-                                    name="schoolName"
-                                    type="text"
-                                    required
-                                    placeholder="例: グローバル語学スクール"
-                                    className="appearance-none block w-full px-3 py-2.5 border border-slate-300 rounded-xl shadow-sm placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 sm:text-sm transition"
-                                />
-                            </div>
+                            <input
+                                type="text"
+                                required
+                                placeholder="キタノリスピー"
+                                className="block w-full px-4 py-3 bg-white border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-orange-500 transition-all"
+                                onChange={(e) => setSchoolName(e.target.value)}
+                            />
                         </div>
-
                         <div>
-                            <label
-                                htmlFor="email"
-                                className="block text-sm font-bold text-slate-700"
-                            >
+                            <label className="block text-xs font-bold tracking-wider text-slate-500 uppercase mb-2">
                                 メールアドレス
                             </label>
-                            <div className="mt-1">
-                                <input
-                                    id="email"
-                                    name="email"
-                                    type="email"
-                                    required
-                                    placeholder="admin@example.com"
-                                    className="appearance-none block w-full px-3 py-2.5 border border-slate-300 rounded-xl shadow-sm placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 sm:text-sm transition"
-                                />
-                            </div>
+                            <input
+                                type="email"
+                                required
+                                placeholder="admin@example.com"
+                                className="block w-full px-4 py-3 bg-white border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-orange-500 transition-all"
+                                onChange={(e) => setEmail(e.target.value)}
+                            />
                         </div>
-
                         <div>
-                            <label
-                                htmlFor="password"
-                                className="block text-sm font-bold text-slate-700"
-                            >
+                            <label className="block text-xs font-bold tracking-wider text-slate-500 uppercase mb-2">
                                 パスワード
                             </label>
-                            <div className="mt-1">
-                                <input
-                                    id="password"
-                                    name="password"
-                                    type="password"
-                                    required
-                                    placeholder="6文字以上の英数字"
-                                    className="appearance-none block w-full px-3 py-2.5 border border-slate-300 rounded-xl shadow-sm placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 sm:text-sm transition"
-                                />
-                            </div>
+                            <input
+                                type="password"
+                                required
+                                placeholder="6文字以上"
+                                className="block w-full px-4 py-3 bg-white border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-orange-500 transition-all"
+                                onChange={(e) => setPassword(e.target.value)}
+                            />
                         </div>
-
-                        <div className="text-xs text-slate-500 leading-relaxed">
-                            登録ボタンをクリックすることで、スクール管理システムの利用規約およびプライバシーポリシーに同意したものとみなされます。
-                        </div>
-
-                        <div>
-                            <button
-                                type="submit"
-                                className="w-full flex justify-center py-3 px-4 border border-transparent rounded-xl shadow-md text-sm font-bold text-white bg-gradient-to-r from-red-500 to-orange-500 hover:from-red-600 hover:to-orange-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500 transform active:scale-[0.98] transition"
-                            >
-                                無料でアカウントを作成する
-                            </button>
-                        </div>
+                        <button
+                            disabled={loading}
+                            className="w-full py-3.5 mt-4 rounded-xl text-sm font-black text-white bg-black hover:bg-slate-800 transition-all shadow-lg active:scale-[0.98]"
+                        >
+                            {loading ? "処理中..." : "アカウントを作成"}
+                        </button>
                     </form>
 
-                    <div className="mt-6 text-center">
+                    <div className="mt-8 pt-6 border-t border-slate-200 text-center text-xs text-slate-500 font-medium">
+                        すでにアカウントをお持ちですか？{" "}
                         <Link
-                            href="/"
-                            className="text-xs font-semibold text-slate-400 hover:text-slate-600 transition"
+                            href="/login"
+                            className="font-bold text-[#ff4f18] hover:underline"
                         >
-                            ← トップページへ戻る
+                            ログインはこちら
                         </Link>
                     </div>
                 </div>

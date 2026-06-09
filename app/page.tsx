@@ -5,82 +5,73 @@ import Link from "next/link";
 
 export default function HomePage() {
     return (
-        <div className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-red-50 text-slate-800">
-            {/* ヘッダー */}
-            <header className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
-                <div className="flex items-center space-x-2">
-                    <div className="w-10 h-10 bg-gradient-to-tr from-red-500 to-orange-500 rounded-xl flex items-center justify-center text-white font-black text-xl shadow-md shadow-orange-500/20">
-                        L
-                    </div>
-                    <span className="text-xl font-extrabold tracking-tight bg-gradient-to-r from-red-600 to-orange-500 bg-clip-text text-transparent">
-                        Language School
-                    </span>
-                </div>
-                <div className="flex items-center space-x-4">
-                    <Link
-                        href="/login"
-                        className="text-sm font-semibold text-slate-600 hover:text-red-500 transition"
-                    >
-                        ログイン
-                    </Link>
-                    <Link
-                        href="/register"
-                        className="text-sm font-semibold text-white bg-gradient-to-r from-red-500 to-orange-500 hover:from-red-600 hover:to-orange-600 px-4 py-2 rounded-lg shadow-md shadow-orange-500/10 transition"
-                    >
-                        無料登録
-                    </Link>
-                </div>
-            </header>
+        <div className="min-h-screen bg-linear-to-br from-[#ff3b30] via-[#ff6b2b] to-[#ff9500] flex flex-col items-center justify-center text-white px-6 font-sans selection:bg-white/20 selection:text-white">
+            {/* ロゴを模した円形アイコン (白抜き中央にブランドの頭文字) */}
+            <div className="w-21 h-21 bg-white rounded-full flex items-center justify-center shadow-xl shadow-black/10 mb-8 border border-white/20">
+                <span className="text-4xl font-black tracking-tighter bg-linear-to-br from-[#ff3b30] to-[#ff6b2b] bg-clip-text text-transparent">
+                    S
+                </span>
+            </div>
 
-            {/* ヒーローセクション */}
-            <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-16 pb-24 text-center">
-                <div className="inline-flex items-center space-x-2 bg-orange-500/10 text-orange-600 px-4 py-1.5 rounded-full text-xs font-semibold mb-6">
-                    <span>✨ 授業スケジュール・受講管理システム</span>
-                </div>
+            {/* タイトル */}
+            <h1 className="text-black text-base md:text-5xl font-black tracking-tight mb-4 text-center drop-shadow-[0_2px_4px_rgba(0,0,0,0.15)]">
+                SCHOOL-SCHEDULE
+            </h1>
 
-                <h1 className="text-4xl sm:text-6xl font-black tracking-tight text-slate-950 max-w-4xl mx-auto leading-tight sm:leading-none">
-                    語学スクールの運営を、
-                    <br />
-                    <span className="bg-gradient-to-r from-red-600 via-orange-500 to-amber-500 bg-clip-text text-transparent">
-                        もっとスマートに、円滑に。
-                    </span>
-                </h1>
+            {/* サブタイトル */}
+            <p className="text-black text-base md:text-lg font-bold tracking-wider text-center max-w-sm mb-12 drop-shadow-[0_1px_2px_rgba(0,0,0,0.1)]">
+                授業スケジュール管理システム
+            </p>
 
-                <p className="mt-6 text-base sm:text-xl text-slate-500 max-w-2xl mx-auto leading-relaxed">
-                    講師スケジュール、受講生の情報、レッスンの予約状況をひと目で把握。
-                    一歩進んだスクールマネジメントを、美しいデザインとともに始めましょう。
-                </p>
+            {/* メインアクションボタン（白背景で文字を赤オレンジに抜くことで最高に引き立ちます） */}
+            <Link
+                href="/login"
+                className="w-full max-w-[320px] bg-white hover:bg-orange-50 text-[#ff4f18] font-black py-4 px-6 rounded-2xl flex items-center justify-center space-x-3 transition-all duration-200 shadow-xl shadow-black/10 active:scale-[0.99]"
+            >
+                <svg
+                    className="w-5 h-5"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                    xmlns="http://www.w3.org/2000/svg"
+                >
+                    <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth="2.5"
+                        d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"
+                    ></path>
+                </svg>
+                <span className="text-base tracking-wider">ログイン画面へ</span>
+                <svg
+                    className="w-5 h-5"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                    xmlns="http://www.w3.org/2000/svg"
+                >
+                    <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth="2.5"
+                        d="M14 5l7 7m0 0l-7 7m7-7H3"
+                    ></path>
+                </svg>
+            </Link>
 
-                {/* アクションボタン */}
-                <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
-                    <Link
-                        href="/register"
-                        className="w-full sm:w-auto text-base font-bold text-white bg-gradient-to-r from-red-500 via-orange-500 to-orange-600 hover:opacity-95 px-8 py-4 rounded-xl shadow-lg shadow-orange-500/20 transform hover:-translate-y-0.5 transition text-center"
-                    >
-                        管理システムを始める（無料）
-                    </Link>
-                    <Link
-                        href="/login"
-                        className="w-full sm:w-auto text-base font-bold text-slate-700 bg-white hover:bg-slate-50 border border-slate-200 px-8 py-4 rounded-xl shadow-sm transform hover:-translate-y-0.5 transition text-center"
-                    >
-                        管理者ログイン
-                    </Link>
-                </div>
+            {/* 洗練された細い区切り線 */}
+            <div className="w-full max-w-[320px] h-px bg-white/20 my-8"></div>
 
-                {/* 装飾用のダミー画面イメージ */}
-                <div className="mt-16 border border-slate-200/80 bg-white/50 p-3 rounded-2xl shadow-2xl max-w-4xl mx-auto backdrop-blur-sm">
-                    <div className="bg-slate-950 rounded-xl aspect-[16/9] flex items-center justify-center p-8 text-slate-400 border border-slate-800">
-                        <div className="space-y-2 text-center">
-                            <p className="text-sm font-mono text-orange-400">
-                                ⚡ Smart Dashboard Preview
-                            </p>
-                            <p className="text-xs text-slate-500">
-                                ログイン後、ここに一元管理された週間スケジュールが表示されます
-                            </p>
-                        </div>
-                    </div>
-                </div>
-            </main>
+            {/* 新規登録案内 */}
+            <p className="text-orange-50 text-xs mb-3 font-medium tracking-wide">
+                新しいアカウントの作成はこちら
+            </p>
+            <Link
+                href="/register"
+                className="text-white hover:text-orange-100 font-extrabold text-sm transition-colors duration-200 flex items-center tracking-wide underline decoration-white/30 underline-offset-4"
+            >
+                今すぐ新規アカウントを作成する →
+            </Link>
         </div>
     );
 }
