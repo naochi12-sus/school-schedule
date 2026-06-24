@@ -22,22 +22,15 @@ export default function LoginPage() {
 
             <div className="sm:mx-auto w-full max-w-md z-10">
                 <div className="flex justify-center mb-4">
-                    <div className="w-12 h-12 bg-gradient-to-tr from-red-500 to-orange-500 rounded-2xl flex items-center justify-center text-white font-black text-2xl shadow-lg shadow-orange-500/20">
-                        L
+                    <div className="w-20 h-20 bg-linear-to-br from-[#ff3b30] via-[#ff6b2b] to-[#ff9500] rounded-full flex items-center justify-center shadow-xl shadow-orange-500/20 mb-8 border border-white/10">
+                        <span className="text-4xl font-black tracking-tighter text-white drop-shadow-sm">
+                            S
+                        </span>
                     </div>
                 </div>
                 <h2 className="text-center text-3xl font-black tracking-tight text-slate-950">
-                    管理者ログイン
+                    ログイン
                 </h2>
-                <p className="mt-2 text-center text-sm text-slate-500">
-                    または{" "}
-                    <Link
-                        href="/register"
-                        className="font-semibold text-orange-600 hover:text-red-500 transition"
-                    >
-                        新しくアカウントを作成する
-                    </Link>
-                </p>
             </div>
 
             <div className="mt-8 sm:mx-auto w-full max-w-md z-10">
@@ -101,7 +94,7 @@ export default function LoginPage() {
                         <div>
                             <button
                                 type="submit"
-                                className="w-full flex justify-center py-3 px-4 border border-transparent rounded-xl shadow-md text-sm font-bold text-white bg-gradient-to-r from-red-500 to-orange-500 hover:from-red-600 hover:to-orange-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500 transform active:scale-[0.98] transition"
+                                className="w-full flex justify-center py-3 px-4 border border-transparent rounded-xl shadow-md text-sm font-bold text-white bg-linear-to-r from-red-500 to-orange-500 hover:from-red-600 hover:to-orange-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500 transform active:scale-[0.98] transition"
                             >
                                 ログインする
                             </button>
