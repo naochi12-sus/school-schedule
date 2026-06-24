@@ -2,10 +2,16 @@
 
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { Plus, Filter, ChevronLeft, ChevronRight, LogOut } from "lucide-react";
+import {
+    Plus,
+    Filter,
+    ChevronLeft,
+    ChevronRight,
+    LogOut,
+    Users,
+} from "lucide-react";
 import { createClient } from "@/utils/supabase/client";
 
-// 1. データベースの形（魔法で取ってくる「生徒の名前」の枠を追加！）
 type LessonData = {
     lesson_id: number;
     lesson_date: string;
@@ -15,7 +21,6 @@ type LessonData = {
     difficulty_level: string;
     capacity: number;
     lessons_memo: string;
-    // 👇 魔法（JOIN）で繋がった「中間テーブル」と「生徒テーブル」のデータが入る箱
     lesson_participants?: {
         students?: {
             s_name: string;
@@ -48,7 +53,6 @@ export default function DashboardPage() {
         try {
             const { error } = await supabase.auth.signOut();
             if (error) throw error;
-
             alert("ログアウトしました。トップ画面に戻ります。");
             router.push("/");
             router.refresh();
@@ -73,7 +77,6 @@ export default function DashboardPage() {
     const weekDays = Array.from({ length: 7 }).map((_, index) => {
         const dayDate = new Date(startOfWeek);
         dayDate.setDate(startOfWeek.getDate() + index);
-
         const dayLabels = ["月", "火", "水", "木", "金", "土", "日"];
         return {
             name: dayLabels[index],
@@ -110,7 +113,6 @@ export default function DashboardPage() {
 
     useEffect(() => {
         const fetchLessons = async () => {
-            // 💡 【魔法のコード】「lesson_participants」と「students」をガッチャンコして取ってくる！
             const { data, error } = await supabase.from("lessons").select(`
                     *,
                     lesson_participants (
@@ -119,14 +121,12 @@ export default function DashboardPage() {
                         )
                     )
                 `);
-
             if (error) {
                 console.error("データの取得に失敗しました:", error);
             } else if (data) {
                 setLessons(data as unknown as LessonData[]);
             }
         };
-
         fetchLessons();
     }, [startOfWeek]);
 
@@ -154,13 +154,24 @@ export default function DashboardPage() {
                         </div>
                     </div>
 
-                    <button
-                        onClick={handleLogOut}
-                        className="flex items-center gap-1.5 px-3 py-2 text-xs font-bold text-slate-500 hover:text-red-600 bg-slate-50 hover:bg-red-50 border border-slate-200 hover:border-red-100 rounded-lg transition-all active:scale-[0.98]"
-                    >
-                        <LogOut className="w-3.5 h-3.5" />
-                        ログアウト
-                    </button>
+                    <div className="flex items-center gap-3">
+                        {/* 💡 生徒一覧への導線を大きく配置 */}
+                        <button
+                            onClick={() => router.push("/students")}
+                            className="flex items-center gap-1.5 px-4 py-2 text-sm font-black bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-all shadow-sm active:scale-[0.98] cursor-pointer "
+                        >
+                            <Users className="w-4 h-4" />
+                            生徒一覧を見る
+                        </button>
+
+                        <button
+                            onClick={handleLogOut}
+                            className="flex items-center gap-1.5 px-3 py-2 text-xs font-bold text-slate-500 hover:text-red-600 bg-slate-50 hover:bg-red-50 border border-slate-200 hover:border-red-100 rounded-lg transition-all active:scale-[0.98] cursor-pointer "
+                        >
+                            <LogOut className="w-3.5 h-3.5" />
+                            ログアウト
+                        </button>
+                    </div>
                 </div>
             </header>
 
@@ -174,12 +185,11 @@ export default function DashboardPage() {
                             時間枠をクリックしてクイックに授業枠を作成・予約できます。
                         </p>
                     </div>
-
                     <button
                         onClick={() =>
                             handleCreateLesson(weekDays[0].fullDate, 1)
                         }
-                        className="flex items-center justify-center gap-2 bg-slate-900 hover:bg-black text-white font-bold px-5 py-3 rounded-xl transition-all shadow-md active:scale-[0.98] text-sm self-start sm:self-center"
+                        className="flex items-center justify-center gap-2 bg-slate-900 hover:bg-black text-white font-bold px-5 py-3 rounded-xl transition-all shadow-md active:scale-[0.98] text-sm self-start sm:self-center cursor-pointer "
                     >
                         <Plus className="w-4 h-4" />
                         スケジュールを作成
@@ -194,19 +204,19 @@ export default function DashboardPage() {
                         <div className="flex bg-slate-100 p-1 rounded-lg gap-0.5">
                             <button
                                 onClick={handlePrevWeek}
-                                className="p-1.5 hover:bg-white rounded-md text-slate-600 transition-all"
+                                className="p-1.5 hover:bg-white rounded-md text-slate-600 transition-all cursor-pointer "
                             >
                                 <ChevronLeft className="w-4 h-4" />
                             </button>
                             <button
                                 onClick={() => setCurrentDate(new Date())}
-                                className="px-3 py-1 bg-white rounded-md text-xs font-bold text-slate-700 shadow-xs"
+                                className="px-3 py-1 bg-white rounded-md text-xs font-bold text-slate-700 shadow-xs cursor-pointer "
                             >
                                 今週
                             </button>
                             <button
                                 onClick={handleNextWeek}
-                                className="p-1.5 hover:bg-white rounded-md text-slate-600 transition-all"
+                                className="p-1.5 hover:bg-white rounded-md text-slate-600 transition-all cursor-pointer "
                             >
                                 <ChevronRight className="w-4 h-4" />
                             </button>
@@ -258,7 +268,6 @@ export default function DashboardPage() {
                                                 l.start_time === slot.start,
                                         );
 
-                                        // 👇 取ってきたデータの中から、生徒の名前だけを抽出してカンマでつなぐ処理
                                         const participantNames =
                                             lesson?.lesson_participants
                                                 ?.map(
@@ -273,11 +282,14 @@ export default function DashboardPage() {
                                                 className="p-1 align-top block h-full"
                                             >
                                                 {lesson ? (
-                                                    // 💡 【デザイン変更】中身のレイアウトをスッキリさせました
                                                     <div
-                                                        className={`h-full p-2.5 border-l-4 rounded-xl text-xs flex flex-col shadow-xs transition-all cursor-pointer ${getSubjectColor(lesson.subject)}`}
+                                                        onClick={() =>
+                                                            router.push(
+                                                                `/dashboard/lessons/${lesson.lesson_id}`,
+                                                            )
+                                                        }
+                                                        className={`h-full p-2.5 border-l-4 rounded-xl text-xs flex flex-col shadow-xs transition-all cursor-pointer hover:scale-[1.02] ${getSubjectColor(lesson.subject)}`}
                                                     >
-                                                        {/* 上部：科目と難易度 */}
                                                         <div className="flex items-start justify-between mb-1.5">
                                                             <span className="inline-block px-1.5 py-0.5 bg-white font-black rounded-md border border-current/30 leading-none">
                                                                 {lesson.subject}
@@ -291,7 +303,6 @@ export default function DashboardPage() {
                                                             )}
                                                         </div>
 
-                                                        {/* 中部：時間（「09:00:00」の秒を削って「09:00」と表示） */}
                                                         <div className="text-[10px] font-black opacity-70 mb-2 font-sans tracking-wider">
                                                             {lesson.start_time.substring(
                                                                 0,
@@ -304,7 +315,6 @@ export default function DashboardPage() {
                                                             )}
                                                         </div>
 
-                                                        {/* 下部：参加者リスト */}
                                                         <div className="text-slate-800 font-bold tracking-tight leading-relaxed mt-auto pt-2 border-t border-current/20">
                                                             {participantNames ? (
                                                                 participantNames
