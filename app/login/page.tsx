@@ -1,17 +1,38 @@
-// app/login/page.tsx
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { createClient } from "@/utils/supabase/client";
 
 export default function LoginPage() {
     const router = useRouter();
+    const supabase = createClient();
 
-    const handleLoginSubmit = (e: React.FormEvent) => {
+    const [email, setEmail] = useState("");
+    const [password, setPassword] = useState("");
+    const [isLoading, setIsLoading] = useState(false);
+    const [errorMessage, setErrorMessage] = useState("");
+
+    const handleLoginSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        // モック動作：スケジュール画面へ
-        router.push("/dashboard");
+        setIsLoading(true);
+        setErrorMessage("");
+
+        // 💡 Supabaseで実際にログインを検証します
+        const { error } = await supabase.auth.signInWithPassword({
+            email,
+            password,
+        });
+
+        if (error) {
+            setErrorMessage(
+                "ログインに失敗しました。メールアドレスかパスワードが間違っています。",
+            );
+            setIsLoading(false);
+        } else {
+            router.push("/dashboard");
+        }
     };
 
     return (
@@ -36,6 +57,13 @@ export default function LoginPage() {
             <div className="mt-8 sm:mx-auto w-full max-w-md z-10">
                 <div className="bg-white py-8 px-4 shadow-xl shadow-slate-200/50 sm:rounded-2xl sm:px-10 border border-slate-200/60">
                     <form className="space-y-6" onSubmit={handleLoginSubmit}>
+                        {/* エラーがある時だけ赤いメッセージを表示 */}
+                        {errorMessage && (
+                            <div className="p-3 bg-red-50 text-red-600 text-sm font-bold rounded-xl border border-red-200">
+                                {errorMessage}
+                            </div>
+                        )}
+
                         <div>
                             <label
                                 htmlFor="email"
@@ -49,6 +77,8 @@ export default function LoginPage() {
                                     name="email"
                                     type="email"
                                     required
+                                    value={email}
+                                    onChange={(e) => setEmail(e.target.value)}
                                     placeholder="admin@example.com"
                                     className="appearance-none block w-full px-3 py-2.5 border border-slate-300 rounded-xl shadow-sm placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 sm:text-sm transition"
                                 />
@@ -68,35 +98,25 @@ export default function LoginPage() {
                                     name="password"
                                     type="password"
                                     required
+                                    value={password}
+                                    onChange={(e) =>
+                                        setPassword(e.target.value)
+                                    }
                                     placeholder="••••••••"
                                     className="appearance-none block w-full px-3 py-2.5 border border-slate-300 rounded-xl shadow-sm placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 sm:text-sm transition"
                                 />
                             </div>
                         </div>
 
-                        <div className="flex items-center justify-between text-sm">
-                            <div className="flex items-center">
-                                <input
-                                    id="remember-me"
-                                    name="remember-me"
-                                    type="checkbox"
-                                    className="h-4 w-4 text-orange-600 focus:ring-orange-500 border-slate-300 rounded-md"
-                                />
-                                <label
-                                    htmlFor="remember-me"
-                                    className="ml-2 block text-slate-600 font-medium"
-                                >
-                                    ログイン状態を維持
-                                </label>
-                            </div>
-                        </div>
+                        {/* 💡 ログイン状態維持のチェックボックスのエリアをまるごと綺麗に削除しました */}
 
                         <div>
                             <button
                                 type="submit"
-                                className="w-full flex justify-center py-3 px-4 border border-transparent rounded-xl shadow-md text-sm font-bold text-white bg-linear-to-r from-red-500 to-orange-500 hover:from-red-600 hover:to-orange-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500 transform active:scale-[0.98] transition"
+                                disabled={isLoading}
+                                className="w-full flex justify-center py-3 px-4 border border-transparent rounded-xl shadow-md text-sm font-bold text-white bg-linear-to-r from-red-500 to-orange-500 hover:from-red-600 hover:to-orange-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500 transform active:scale-[0.98] transition disabled:opacity-50"
                             >
-                                ログインする
+                                {isLoading ? "確認中..." : "ログインする"}
                             </button>
                         </div>
                     </form>

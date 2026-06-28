@@ -43,13 +43,13 @@ export default function StudentDetailPage() {
     const studentId = params.id as string;
 
     const [student, setStudent] = useState<StudentDetail | null>(null);
-    const [isLoading, setIsLoading] = useState(true);
 
-    // 💡 【新設】編集モードを管理する状態（スイッチ）
+    // 💡 【変更点①】ガード用のローディング状態
+    const [isPageLoading, setIsPageLoading] = useState(true);
+
     const [isEditing, setIsEditing] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
 
-    // 💡 【新設】編集用の入力欄の状態
     const [editName, setEditName] = useState("");
     const [editEmail, setEditEmail] = useState("");
     const [editStatus, setEditStatus] = useState("在籍中");
@@ -58,58 +58,70 @@ export default function StudentDetailPage() {
     const [editAmount, setEditAmount] = useState<number | "">("");
     const [editContent, setEditContent] = useState("");
 
-    // データ取得
-    const fetchStudentDetail = async () => {
-        setIsLoading(true);
-        const { data, error } = await supabase
-            .from("students")
-            .select(
-                `
-                *,
-                lesson_participants (
-                    lessons (
-                        lesson_id,
-                        lesson_date,
-                        start_time,
-                        subject
-                    )
-                )
-            `,
-            )
-            .eq("student_id", studentId)
-            .single();
-
-        if (error) {
-            console.error("データ取得エラー:", error);
-            alert("生徒情報の取得に失敗しました。");
-        } else if (data) {
-            const currentData = data as unknown as StudentDetail;
-            setStudent(currentData);
-
-            // 💡 編集用の入力欄に、今のデータベースの値を初期値としてセットする
-            setEditName(currentData.s_name);
-            setEditEmail(currentData.s_email || "");
-            setEditStatus(currentData.status);
-            setEditQuota(currentData.monthly_quota);
-            setEditJoining(currentData.date_of_joining);
-            setEditAmount(currentData.amount || "");
-            setEditContent(currentData.s_content || "");
-        }
-        setIsLoading(false);
-    };
-
+    // 💡 【変更点②】ログインチェックとデータ取得を1つに統合した完璧なガード
     useEffect(() => {
-        if (studentId) {
-            fetchStudentDetail();
-        }
-    }, [studentId]);
+        const initPage = async () => {
+            // 1. 鉄壁ガード（ログインチェック）
+            const authClient = createClient();
+            const {
+                data: { user },
+            } = await authClient.auth.getUser();
 
-    // 💡 【新設】保存処理（UPDATE）
+            if (!user) {
+                router.push("/login");
+                return; // 未ログインならここでストップ
+            }
+
+            // 2. ログインOKなら、生徒のデータを取得
+            if (studentId) {
+                const { data, error } = await supabase
+                    .from("students")
+                    .select(
+                        `
+                        *,
+                        lesson_participants (
+                            lessons (
+                                lesson_id,
+                                lesson_date,
+                                start_time,
+                                subject
+                            )
+                        )
+                    `,
+                    )
+                    .eq("student_id", studentId)
+                    .single();
+
+                if (error) {
+                    console.error("データ取得エラー:", error);
+                    alert("生徒情報の取得に失敗しました。");
+                } else if (data) {
+                    const currentData = data as unknown as StudentDetail;
+                    setStudent(currentData);
+
+                    // 編集用の入力欄に、今のデータベースの値を初期値としてセットする
+                    setEditName(currentData.s_name);
+                    setEditEmail(currentData.s_email || "");
+                    setEditStatus(currentData.status);
+                    setEditQuota(currentData.monthly_quota);
+                    setEditJoining(currentData.date_of_joining);
+                    setEditAmount(currentData.amount || "");
+                    setEditContent(currentData.s_content || "");
+                }
+            }
+
+            // 3. すべての準備が完了したら、ガードの壁を開ける
+            setIsPageLoading(false);
+        };
+
+        initPage();
+    }, [router, studentId, supabase]);
+
+    // 保存処理（UPDATE）
     const handleSave = async (e: React.FormEvent) => {
         e.preventDefault();
         setIsSaving(true);
 
-        // Supabaseの 'students' テーブルを更新（UPDATE）
         const { error } = await supabase
             .from("students")
             .update({
@@ -130,9 +142,11 @@ export default function StudentDetailPage() {
             alert("保存に失敗しました。");
         } else {
             alert("生徒情報を更新しました！");
-            setIsEditing(false); // 編集モードを終了
-            fetchStudentDetail(); // 画面のデータを最新に更新
+            setIsEditing(false);
+
+            // 💡 画面を最新状態にするため、リロードします
             router.refresh();
+            // ※通常はここで再取得関数を呼びますが、今回はuseEffectの中にまとめたためリフレッシュで対応します
         }
     };
 
@@ -158,7 +172,8 @@ export default function StudentDetailPage() {
         }
     };
 
-    if (isLoading) {
+    // 💡 【変更点③】ログイン確認が終わるまでは真っ白なローディング壁を出す
+    if (isPageLoading) {
         return (
             <div className="min-h-screen bg-slate-50 flex items-center justify-center text-slate-400 font-bold">
                 読み込み中...
@@ -233,13 +248,12 @@ export default function StudentDetailPage() {
                     <div className="p-8">
                         {!isEditing ? (
                             /* ===================================================
-                               通常表示モード（青・白のデザインに統一）
+                               通常表示モード
                             =================================================== */
                             <div className="space-y-6">
                                 {/* ヘッダー */}
                                 <div className="flex items-center justify-between border-b border-slate-100 pb-6">
                                     <div className="flex items-center gap-4">
-                                        {/* 🟢 アイコン背景を青系に統一 */}
                                         <div className="w-14 h-14 bg-blue-50 rounded-2xl flex items-center justify-center text-blue-600 border border-blue-100/50">
                                             <User className="w-7 h-7" />
                                         </div>
@@ -252,7 +266,6 @@ export default function StudentDetailPage() {
                                             </p>
                                         </div>
                                     </div>
-                                    {/* 🟢 バッジを青系に統一 */}
                                     <span className="px-3 py-1 bg-blue-600 text-white text-xs font-black rounded-lg shadow-sm">
                                         {student.status}
                                     </span>
@@ -366,7 +379,7 @@ export default function StudentDetailPage() {
                             </div>
                         ) : (
                             /* ===================================================
-                               💡 編集モード（新規登録画面と同じ青い入力フォーム）
+                               編集モード
                             =================================================== */
                             <form onSubmit={handleSave} className="space-y-6">
                                 <div className="border-b border-slate-100 pb-4 mb-4">
@@ -496,9 +509,7 @@ export default function StudentDetailPage() {
                                     <textarea
                                         value={editContent}
                                         onChange={(e) =>
-                                            editContent
-                                                ? setEditContent(e.target.value)
-                                                : setEditContent(e.target.value)
+                                            setEditContent(e.target.value)
                                         }
                                         rows={4}
                                         className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 font-bold text-slate-700 resize-none"

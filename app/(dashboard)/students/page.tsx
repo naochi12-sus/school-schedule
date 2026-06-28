@@ -30,13 +30,24 @@ export default function StudentsListPage() {
     const [students, setStudents] = useState<StudentData[]>([]);
     const [isLoading, setIsLoading] = useState(true);
 
+    // 💡 ログインチェックとデータ取得を1つの処理にまとめました
     useEffect(() => {
-        const fetchStudents = async () => {
-            setIsLoading(true);
+        const initPage = async () => {
+            // 💡 1. まずは鉄壁ガード（ログインチェック）
+            const authClient = createClient();
+            const {
+                data: { user },
+            } = await authClient.auth.getUser();
+
+            if (!user) {
+                router.push("/login");
+                return; // 未ログインならここで処理を完全にストップさせます
+            }
+
+            // 💡 2. ログインしていることが確認できたら、生徒データを取ってきます
             const { data, error } = await supabase
                 .from("students")
                 .select("*")
-                // 💡 【ここを変更しました！】 ascending: true（昇順）にすることで、新しい人が下に追加されます。
                 .order("student_id", { ascending: true });
 
             if (error) {
@@ -44,11 +55,13 @@ export default function StudentsListPage() {
             } else if (data) {
                 setStudents(data as StudentData[]);
             }
+
+            // 💡 3. すべての準備が整ったら、ローディングの壁を解除（false）します
             setIsLoading(false);
         };
 
-        fetchStudents();
-    }, []);
+        initPage();
+    }, [router, supabase]);
 
     const getStatusBadge = (status: string) => {
         switch (status) {
@@ -78,6 +91,16 @@ export default function StudentsListPage() {
                 );
         }
     };
+
+    // 💡 【ここが鉄壁ガードの壁】
+    // ログインチェックとデータ取得が終わるまで、画面全体を読み込み中にします
+    if (isLoading) {
+        return (
+            <div className="min-h-screen bg-slate-50 flex items-center justify-center text-slate-500 font-bold">
+                読み込み中...
+            </div>
+        );
+    }
 
     return (
         <div className="min-h-screen bg-slate-50 font-sans text-slate-800 p-6">
@@ -118,11 +141,8 @@ export default function StudentsListPage() {
 
                 {/* テーブルエリア */}
                 <div className="bg-white rounded-2xl shadow-xl border border-slate-200/60 overflow-hidden">
-                    {isLoading ? (
-                        <div className="p-12 text-center text-slate-400 font-bold">
-                            データを読み込んでいます...
-                        </div>
-                    ) : students.length === 0 ? (
+                    {/* 💡 データが0件のときの表示だけ残しています（ローディングは上の壁で処理済み） */}
+                    {students.length === 0 ? (
                         <div className="p-12 text-center space-y-3">
                             <div className="text-slate-400 font-bold">
                                 まだ生徒が登録されていません。
@@ -201,7 +221,7 @@ export default function StudentsListPage() {
                                                 </div>
                                             </td>
                                             <td className="p-4 pr-6 text-right">
-                                                <ChevronRight className="w-4 h-4 text-slate-300 inline group-hover:text-slate-600 group-hover:translate-x-0.5 transition-all" />
+                                                <ChevronRight className="w-4 h-4 text-slate-300 inline group-hover:text-blue-700 group-hover:translate-x-0.5 transition-all" />
                                             </td>
                                         </tr>
                                     ))}

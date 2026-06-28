@@ -25,7 +25,10 @@ export default function NewLessonPage() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const supabase = createClient();
-    const [isLoading, setIsLoading] = useState(false);
+
+    // 💡 【変更点1】画面を開くときの「ガード用ローディング」と、保存ボタン用の「保存中ローディング」を分けました
+    const [isPageLoading, setIsPageLoading] = useState(true);
+    const [isSaving, setIsSaving] = useState(false);
 
     // 時間枠の定義
     const timeSlots = [
@@ -98,26 +101,38 @@ export default function NewLessonPage() {
     const [difficulty, setDifficulty] = useState("初級");
     const [memo, setMemo] = useState("");
 
-    // 💡 【新設】生徒リストと、選択された生徒IDの管理
+    // 生徒リストと、選択された生徒IDの管理
     const [students, setStudents] = useState<Student[]>([]);
     const [selectedStudentIds, setSelectedStudentIds] = useState<number[]>([]);
 
-    // URLパラメータの取得と、生徒リストの取得
+    // 💡 【変更点2】ログインチェックと初期データの取得を「initPage」にまとめました
     useEffect(() => {
-        const dateParam = searchParams.get("date");
-        const slotParam = searchParams.get("slot");
+        const initPage = async () => {
+            // ① 鉄壁ガード（ログインチェック）
+            const authClient = createClient();
+            const {
+                data: { user },
+            } = await authClient.auth.getUser();
 
-        if (dateParam) {
-            setLessonDate(dateParam);
-        } else {
-            setLessonDate(new Date().toISOString().split("T")[0]);
-        }
-        if (slotParam) {
-            setSelectedSlotId(Number(slotParam));
-        }
+            if (!user) {
+                router.push("/login");
+                return; // 未ログインならここでストップ
+            }
 
-        // 💡 データベースから「在籍中」の生徒リストを取ってくる
-        const fetchStudents = async () => {
+            // ② URLパラメータから日付と時限をセット
+            const dateParam = searchParams.get("date");
+            const slotParam = searchParams.get("slot");
+
+            if (dateParam) {
+                setLessonDate(dateParam);
+            } else {
+                setLessonDate(new Date().toISOString().split("T")[0]);
+            }
+            if (slotParam) {
+                setSelectedSlotId(Number(slotParam));
+            }
+
+            // ③ データベースから「在籍中」の生徒リストを取得
             const { data } = await supabase
                 .from("students")
                 .select("student_id, s_name")
@@ -125,11 +140,15 @@ export default function NewLessonPage() {
                 .order("student_id", { ascending: false });
 
             if (data) setStudents(data as Student[]);
-        };
-        fetchStudents();
-    }, [searchParams]);
 
-    // 💡 生徒をクリックしたときに「選択・解除」を切り替える処理
+            // ④ すべての準備が完了したら、ガードの壁を開ける
+            setIsPageLoading(false);
+        };
+
+        initPage();
+    }, [searchParams, router, supabase]);
+
+    // 生徒をクリックしたときに「選択・解除」を切り替える処理
     const toggleStudent = (id: number) => {
         setSelectedStudentIds((prev) =>
             prev.includes(id)
@@ -141,12 +160,12 @@ export default function NewLessonPage() {
     // データベースへの登録処理
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        setIsLoading(true);
+        setIsSaving(true); // 💡 保存中フラグをオン
 
         try {
             if (memo.length > 2000) {
                 alert("レッスンメモは2000文字以内で入力してください。");
-                setIsLoading(false);
+                setIsSaving(false);
                 return;
             }
 
@@ -166,10 +185,10 @@ export default function NewLessonPage() {
                         subject: subject,
                         difficulty_level: difficulty,
                         lessons_memo: memo.trim() || "",
-                        capacity: 8, // 定員入力欄は無くし、裏側で標準の8名で登録しておきます
+                        capacity: 8,
                     },
                 ])
-                .select() // これを書かないと新しいIDが返ってこない
+                .select()
                 .single();
 
             if (lessonError) throw lessonError;
@@ -211,9 +230,18 @@ export default function NewLessonPage() {
             }
             alert("登録に失敗しました: " + errorMessage);
         } finally {
-            setIsLoading(false);
+            setIsSaving(false); // 💡 保存中フラグをオフ
         }
     };
+
+    // 💡 【変更点3】ガード用のローディング壁
+    if (isPageLoading) {
+        return (
+            <div className="min-h-screen bg-slate-50 flex items-center justify-center text-slate-500 font-bold">
+                読み込み中...
+            </div>
+        );
+    }
 
     return (
         <div className="min-h-screen bg-slate-50 font-sans text-slate-800 p-6">
@@ -332,7 +360,7 @@ export default function NewLessonPage() {
                             </div>
                         </div>
 
-                        {/* 💡 3段目：参加する生徒の複数選択エリア */}
+                        {/* 3段目：参加する生徒の複数選択エリア */}
                         <div className="space-y-3 pt-2">
                             <div className="flex items-end justify-between">
                                 <label className="text-sm font-bold text-slate-700 flex items-center gap-1.5">
@@ -411,11 +439,11 @@ export default function NewLessonPage() {
                         {/* 保存ボタン */}
                         <button
                             type="submit"
-                            disabled={isLoading}
+                            disabled={isSaving} // 💡 判定をisSavingに変更
                             className="w-full flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-black px-5 py-4 rounded-xl transition-all shadow-md disabled:opacity-50 mt-6 cursor-pointer"
                         >
                             <Save className="w-5 h-5" />
-                            {isLoading
+                            {isSaving
                                 ? "登録処理中..."
                                 : "スケジュールと参加者を保存する"}
                         </button>

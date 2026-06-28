@@ -28,23 +28,14 @@ type LessonData = {
     }[];
 };
 
-const getSubjectColor = (subject: string) => {
-    switch (subject) {
-        case "中国語":
-            return "bg-orange-50/80 border-orange-500 text-orange-700 hover:bg-orange-100/60";
-        case "韓国語":
-            return "bg-emerald-50/80 border-emerald-500 text-emerald-700 hover:bg-emerald-100/60";
-        default:
-            return "bg-blue-50/80 border-blue-500 text-blue-700 hover:bg-blue-100/60";
-    }
-};
-
 export default function DashboardPage() {
     const router = useRouter();
     const supabase = createClient();
-
     const [currentDate, setCurrentDate] = useState(new Date("2026-06-23"));
     const [lessons, setLessons] = useState<LessonData[]>([]);
+
+    // 💡 【新設】画面のチラつき（フラッシュ）を防ぐため、最初は「読み込み中(true)」にしておきます
+    const [isLoading, setIsLoading] = useState(true);
 
     const handleLogOut = async () => {
         const confirmLogout = window.confirm("本当にログアウトしますか？");
@@ -62,6 +53,34 @@ export default function DashboardPage() {
             } else {
                 alert("予期せぬエラーが発生しました。");
             }
+        }
+    };
+
+    // 💡 ログインチェックのプログラム（一時的にデバッグモードにします）
+    useEffect(() => {
+        const checkLogin = async () => {
+            const authClient = createClient();
+            const {
+                data: { user },
+            } = await authClient.auth.getUser();
+
+            if (!user) {
+                router.push("/login");
+            } else {
+                setIsLoading(false);
+            }
+        };
+        checkLogin();
+    }, [router]);
+
+    const getSubjectColor = (subject: string) => {
+        switch (subject) {
+            case "中国語":
+                return "bg-orange-50/80 border-orange-500 text-orange-700 hover:bg-orange-100/60";
+            case "韓国語":
+                return "bg-emerald-50/80 border-emerald-500 text-emerald-700 hover:bg-emerald-100/60";
+            default:
+                return "bg-blue-50/80 border-blue-500 text-blue-700 hover:bg-blue-100/60";
         }
     };
 
@@ -111,7 +130,11 @@ export default function DashboardPage() {
         { id: 10, name: "10限", time: "19:00~19:50", start: "19:00:00" },
     ];
 
+    // 授業スケジュールの取得
     useEffect(() => {
+        // 💡 ログインチェックが終わるまでは、無駄なデータ取得をしないようにガードをかけます
+        if (isLoading) return;
+
         const fetchLessons = async () => {
             const { data, error } = await supabase.from("lessons").select(`
                     *,
@@ -128,12 +151,23 @@ export default function DashboardPage() {
             }
         };
         fetchLessons();
-    }, [startOfWeek]);
+    }, [startOfWeek, isLoading]); // 💡 isLoading が終わったらデータを取るように変更
 
     const handleCreateLesson = (dateStr: string, slotId: number) => {
         router.push(`/dashboard/new?date=${dateStr}&slot=${slotId}`);
     };
 
+    // 💡 【ここが今回の主役！】
+    // ログインチェックが完了するまでの間は、下のカレンダー画面を絶対に表示させず、このLoading画面でストップさせます。
+    if (isLoading) {
+        return (
+            <div className="min-h-screen bg-slate-50 flex items-center justify-center text-slate-500 font-bold">
+                読み込み中...
+            </div>
+        );
+    }
+
+    // 💡 isLoadingが「false（ログイン確認OK）」になった時だけ、ここから下の本来の画面がレンダリングされます
     return (
         <div className="min-h-screen bg-slate-50 font-sans text-slate-800">
             <header className="w-full bg-white border-b border-slate-200 sticky top-0 z-50 px-6 py-3 shadow-xs">
@@ -155,7 +189,6 @@ export default function DashboardPage() {
                     </div>
 
                     <div className="flex items-center gap-3">
-                        {/* 💡 生徒一覧への導線を大きく配置 */}
                         <button
                             onClick={() => router.push("/students")}
                             className="flex items-center gap-1.5 px-4 py-2 text-sm font-black bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-all shadow-sm active:scale-[0.98] cursor-pointer "

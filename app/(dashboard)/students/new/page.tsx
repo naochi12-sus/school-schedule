@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react"; // 💡 useEffectを追加
 import { useRouter } from "next/navigation";
 import { createClient } from "@/utils/supabase/client";
 import {
@@ -16,6 +16,9 @@ import {
 export default function NewStudentPage() {
     const router = useRouter();
     const supabase = createClient();
+
+    // 💡 【追加①】画面を開くときの「ガード用ローディング」を追加
+    const [isPageLoading, setIsPageLoading] = useState(true);
     const [isSubmitting, setIsSubmitting] = useState(false);
 
     const [sName, setSName] = useState("");
@@ -27,6 +30,26 @@ export default function NewStudentPage() {
     );
     const [amount, setAmount] = useState<number | "">("");
     const [sContent, setSContent] = useState("");
+
+    // 💡 【追加②】ログインチェック（鉄壁ガード）の処理を追加
+    useEffect(() => {
+        const checkLogin = async () => {
+            const authClient = createClient();
+            const {
+                data: { user },
+            } = await authClient.auth.getUser();
+
+            if (!user) {
+                // 未ログインならログイン画面へ強制送還
+                router.push("/login");
+                return;
+            }
+
+            // ログインOKなら壁を開ける（falseにする）
+            setIsPageLoading(false);
+        };
+        checkLogin();
+    }, [router]);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -51,11 +74,19 @@ export default function NewStudentPage() {
             alert("登録に失敗しました。必須項目や形式を確認してください。");
         } else {
             alert("新しい生徒を登録しました！");
-            // 💡 登録完了後、ダッシュボードではなく「生徒一覧」に戻るように変更しました！
             router.push("/students");
             router.refresh();
         }
     };
+
+    // 💡 【追加③】ログイン確認が終わるまでは真っ白なローディング壁を出す
+    if (isPageLoading) {
+        return (
+            <div className="min-h-screen bg-slate-50 flex items-center justify-center text-slate-500 font-bold">
+                読み込み中...
+            </div>
+        );
+    }
 
     return (
         <div className="min-h-screen bg-slate-50 font-sans text-slate-800 p-6">
