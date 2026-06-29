@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/utils/supabase/client";
 import {
@@ -15,12 +15,14 @@ import {
     Check,
 } from "lucide-react";
 
+// 生徒のデータ型
 type Student = {
     student_id: number;
     s_name: string;
 };
 
-export default function NewLessonPage() {
+// 💡 元の NewLessonPage を NewLessonContent という名前に変更し、中身の処理を記述します
+function NewLessonContent() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const supabase = createClient();
@@ -139,7 +141,7 @@ export default function NewLessonPage() {
 
                 if (data) setStudents(data as Student[]);
 
-                // ④ 【修正箇所】すべての準備が終わったので、ここで初めてフタを開ける
+                // ④ すべての準備が終わったので、ここで初めてフタを開ける
                 setIsPageLoading(false);
             } catch (error) {
                 console.error("初期化エラー:", error);
@@ -442,5 +444,20 @@ export default function NewLessonPage() {
                 </div>
             </div>
         </div>
+    );
+}
+
+// 💡 エクスポートするページ本体。上で作った NewLessonContent を <Suspense> で囲みます
+export default function NewLessonPage() {
+    return (
+        <Suspense
+            fallback={
+                <div className="min-h-screen bg-slate-50 flex items-center justify-center text-slate-500 font-bold">
+                    読み込み中...
+                </div>
+            }
+        >
+            <NewLessonContent />
+        </Suspense>
     );
 }
