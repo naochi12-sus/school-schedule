@@ -17,6 +17,7 @@ import {
     Trash2,
     ChevronLeft,
     ChevronRight,
+    BarChart3,
 } from "lucide-react";
 
 type StudentDetail = {
@@ -33,6 +34,7 @@ type StudentDetail = {
             lesson_id: number;
             lesson_date: string;
             start_time: string;
+            end_time: string; // 💡 ここに end_time を追加してエラーを解消しました！
             subject: string;
         };
     }[];
@@ -45,9 +47,7 @@ export default function StudentDetailPage() {
     const studentId = params.id as string;
 
     const [student, setStudent] = useState<StudentDetail | null>(null);
-
     const [isPageLoading, setIsPageLoading] = useState(true);
-
     const [isEditing, setIsEditing] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
 
@@ -56,10 +56,11 @@ export default function StudentDetailPage() {
     const [editStatus, setEditStatus] = useState("在籍中");
     const [editQuota, setEditQuota] = useState(4);
     const [editJoining, setEditJoining] = useState("");
-    const [editAmount, setEditAmount] = useState<number | "">("");
+    const [editAmount, setEditAmount] = useState<
+        number | " text-slate-700 font-black flex items-center gap-2" | ""
+    >("");
     const [editContent, setEditContent] = useState("");
 
-    // 💡 カレンダー表示用の基準月を管理するState（初期値は「今月」）
     const [displayDate, setDisplayDate] = useState(new Date());
 
     useEffect(() => {
@@ -85,6 +86,7 @@ export default function StudentDetailPage() {
                                 lesson_id,
                                 lesson_date,
                                 start_time,
+                                end_time,
                                 subject
                             )
                         )
@@ -141,7 +143,6 @@ export default function StudentDetailPage() {
         } else {
             alert("生徒情報を更新しました！");
             setIsEditing(false);
-
             router.push("/students");
             router.refresh();
         }
@@ -168,7 +169,6 @@ export default function StudentDetailPage() {
         }
     };
 
-    // 💡 月めくり機能の処理
     const handlePrevMonth = () => {
         setDisplayDate(
             new Date(displayDate.getFullYear(), displayDate.getMonth() - 1, 1),
@@ -181,7 +181,6 @@ export default function StudentDetailPage() {
         );
     };
 
-    // 💡 科目ごとの色分け設定
     const getSubjectBadgeStyle = (subject: string) => {
         if (subject === "韓国語") {
             return "bg-emerald-100 text-emerald-700 border-emerald-200/60";
@@ -214,7 +213,6 @@ export default function StudentDetailPage() {
         );
     }
 
-    // 💡 表示している月のデータを計算
     const targetYear = displayDate.getFullYear();
     const targetMonth = displayDate.getMonth() + 1;
 
@@ -229,7 +227,6 @@ export default function StudentDetailPage() {
                 );
             })
             .sort((a, b) => {
-                // 日付順に並び替え
                 return (
                     new Date(a.lessons!.lesson_date).getTime() -
                     new Date(b.lessons!.lesson_date).getTime()
@@ -253,6 +250,18 @@ export default function StudentDetailPage() {
 
                     {!isEditing ? (
                         <div className="flex gap-2">
+                            <button
+                                onClick={() =>
+                                    router.push(
+                                        `/students/${studentId}/analytics`,
+                                    )
+                                }
+                                className="flex items-center gap-1.5 px-4 py-2 bg-indigo-50 border border-indigo-200 text-indigo-700 hover:bg-indigo-100 font-bold rounded-xl shadow-xs transition-all text-sm cursor-pointer"
+                            >
+                                <BarChart3 className="w-4 h-4" />
+                                グラフ
+                            </button>
+
                             <button
                                 onClick={() => setIsEditing(true)}
                                 className="flex items-center gap-1.5 px-4 py-2 bg-white border border-slate-200 text-blue-600 hover:bg-blue-50 font-bold rounded-xl shadow-xs transition-all text-sm cursor-pointer "
@@ -359,7 +368,6 @@ export default function StudentDetailPage() {
                                     </div>
                                 </div>
 
-                                {/* 💡 予約スケジュール（月めくり式・色分け追加） */}
                                 <div className="pt-4 border-t border-slate-100 space-y-3">
                                     <div className="flex items-center justify-between pb-2">
                                         <button
@@ -413,6 +421,10 @@ export default function StudentDetailPage() {
                                                                 5,
                                                             )}
                                                             〜
+                                                            {lesson.end_time.substring(
+                                                                0,
+                                                                5,
+                                                            )}
                                                         </span>
                                                     </div>
                                                 );
@@ -501,16 +513,14 @@ export default function StudentDetailPage() {
                                             }
                                             className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 font-bold text-slate-700 cursor-pointer "
                                         >
-                                            {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9].map(
-                                                (num) => (
-                                                    <option
-                                                        key={num}
-                                                        value={num}
-                                                    >
-                                                        {num} 回 / 月
-                                                    </option>
-                                                ),
-                                            )}
+                                            {[
+                                                0, 1, 2, 3, 4, 5, 6, 7, 8, 9,
+                                                16,
+                                            ].map((num) => (
+                                                <option key={num} value={num}>
+                                                    {num} 回 / 月
+                                                </option>
+                                            ))}
                                         </select>
                                     </div>
                                     <div className="space-y-2">
@@ -564,7 +574,7 @@ export default function StudentDetailPage() {
                                 <button
                                     type="submit"
                                     disabled={isSaving}
-                                    className="w-full flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-black px-5 py-4 rounded-xl transition-all shadow-md disabled:opacity-50 cursor-pointer "
+                                    className="w-full flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-black px-5 py-4 rounded-xl transition-all shadow-md disabled:opacity-50 mt-6 cursor-pointer "
                                 >
                                     <Save className="w-5 h-5" />
                                     {isSaving
