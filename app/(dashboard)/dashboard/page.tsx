@@ -31,10 +31,11 @@ type LessonData = {
 export default function DashboardPage() {
     const router = useRouter();
     const supabase = createClient();
-    const [currentDate, setCurrentDate] = useState(new Date("2026-06-23"));
-    const [lessons, setLessons] = useState<LessonData[]>([]);
 
-    // 💡 【新設】画面のチラつき（フラッシュ）を防ぐため、最初は「読み込み中(true)」にしておきます
+    // 💡 【変更点】固定の日付("2026-06-23")を削除し、new Date()で「常に今日」を取得するようにしました
+    const [currentDate, setCurrentDate] = useState(new Date());
+
+    const [lessons, setLessons] = useState<LessonData[]>([]);
     const [isLoading, setIsLoading] = useState(true);
 
     const handleLogOut = async () => {
@@ -56,7 +57,6 @@ export default function DashboardPage() {
         }
     };
 
-    // 💡 ログインチェックのプログラム（一時的にデバッグモードにします）
     useEffect(() => {
         const checkLogin = async () => {
             const authClient = createClient();
@@ -130,9 +130,7 @@ export default function DashboardPage() {
         { id: 10, name: "10限", time: "19:00~19:50", start: "19:00:00" },
     ];
 
-    // 授業スケジュールの取得
     useEffect(() => {
-        // 💡 ログインチェックが終わるまでは、無駄なデータ取得をしないようにガードをかけます
         if (isLoading) return;
 
         const fetchLessons = async () => {
@@ -151,14 +149,12 @@ export default function DashboardPage() {
             }
         };
         fetchLessons();
-    }, [startOfWeek, isLoading]); // 💡 isLoading が終わったらデータを取るように変更
+    }, [startOfWeek, isLoading, supabase]);
 
     const handleCreateLesson = (dateStr: string, slotId: number) => {
         router.push(`/dashboard/new?date=${dateStr}&slot=${slotId}`);
     };
 
-    // 💡 【ここが今回の主役！】
-    // ログインチェックが完了するまでの間は、下のカレンダー画面を絶対に表示させず、このLoading画面でストップさせます。
     if (isLoading) {
         return (
             <div className="min-h-screen bg-slate-50 flex items-center justify-center text-slate-500 font-bold">
@@ -167,7 +163,6 @@ export default function DashboardPage() {
         );
     }
 
-    // 💡 isLoadingが「false（ログイン確認OK）」になった時だけ、ここから下の本来の画面がレンダリングされます
     return (
         <div className="min-h-screen bg-slate-50 font-sans text-slate-800">
             <header className="w-full bg-white border-b border-slate-200 sticky top-0 z-50 px-6 py-3 shadow-xs">

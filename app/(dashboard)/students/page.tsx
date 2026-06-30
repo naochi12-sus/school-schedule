@@ -161,9 +161,6 @@ export default function StudentsListPage() {
                                     <tr className="bg-slate-50 border-b border-slate-200 text-slate-500 text-xs uppercase tracking-widest font-black">
                                         <th className="p-4 pl-6">生徒名</th>
                                         <th className="p-4">ステータス</th>
-                                        <th className="p-4">連絡先</th>
-                                        <th className="p-4">契約内容</th>
-                                        <th className="p-4">入会日</th>
                                         <th className="p-4 pr-6 text-right">
                                             詳細
                                         </th>
@@ -190,35 +187,6 @@ export default function StudentsListPage() {
                                             </td>
                                             <td className="p-4">
                                                 {getStatusBadge(student.status)}
-                                            </td>
-                                            <td className="p-4">
-                                                <div className="flex items-center gap-2 text-sm font-bold text-slate-600">
-                                                    <Mail className="w-4 h-4 text-slate-400" />
-                                                    {student.s_email || (
-                                                        <span className="text-slate-300">
-                                                            未登録
-                                                        </span>
-                                                    )}
-                                                </div>
-                                            </td>
-                                            <td className="p-4">
-                                                <div className="text-sm font-black text-slate-700">
-                                                    月 {student.monthly_quota}{" "}
-                                                    回
-                                                </div>
-                                                {student.amount > 0 && (
-                                                    <div className="flex items-center gap-1 text-[11px] text-slate-500 font-bold mt-1">
-                                                        <CreditCard className="w-3 h-3" />
-                                                        {student.amount.toLocaleString()}
-                                                        円
-                                                    </div>
-                                                )}
-                                            </td>
-                                            <td className="p-4">
-                                                <div className="flex items-center gap-2 text-sm font-bold text-slate-600">
-                                                    <Calendar className="w-4 h-4 text-slate-400" />
-                                                    {student.date_of_joining}
-                                                </div>
                                             </td>
                                             <td className="p-4 pr-6 text-right">
                                                 <ChevronRight className="w-4 h-4 text-slate-300 inline group-hover:text-blue-700 group-hover:translate-x-0.5 transition-all" />
