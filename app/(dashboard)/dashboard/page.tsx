@@ -97,7 +97,6 @@ export default function DashboardPage() {
         dayDate.setDate(startOfWeek.getDate() + index);
         const dayLabels = ["月", "火", "水", "木", "金", "土", "日"];
 
-        // 💡 修正箇所：toISOString() を使わず、ローカル時間（日本時間）のまま日付文字列を作成します
         const y = dayDate.getFullYear();
         const m = String(dayDate.getMonth() + 1).padStart(2, "0");
         const d = String(dayDate.getDate()).padStart(2, "0");
@@ -105,7 +104,7 @@ export default function DashboardPage() {
         return {
             name: dayLabels[index],
             dateString: `${dayDate.getMonth() + 1}/${dayDate.getDate()}`,
-            fullDate: `${y}-${m}-${d}`, // 例: "2026-07-01"
+            fullDate: `${y}-${m}-${d}`,
         };
     });
 
@@ -189,6 +188,17 @@ export default function DashboardPage() {
                     </div>
 
                     <div className="flex items-center gap-3">
+                        {/* 💡 スケジュール作成ボタンをヘッダーに移動しました */}
+                        <button
+                            onClick={() =>
+                                handleCreateLesson(weekDays[0].fullDate, 1)
+                            }
+                            className="flex items-center gap-1.5 px-4 py-2 text-sm font-black bg-slate-800 hover:bg-slate-900 text-white rounded-lg transition-all shadow-sm active:scale-[0.98] cursor-pointer"
+                        >
+                            <Plus className="w-4 h-4" />
+                            スケジュールを作成
+                        </button>
+
                         <button
                             onClick={() => router.push("/students")}
                             className="flex items-center gap-1.5 px-4 py-2 text-sm font-black bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-all shadow-sm active:scale-[0.98] cursor-pointer "
@@ -197,11 +207,12 @@ export default function DashboardPage() {
                             生徒一覧を見る
                         </button>
 
+                        {/* 💡 ログアウトボタンを目立つ赤系に変更しました */}
                         <button
                             onClick={handleLogOut}
-                            className="flex items-center gap-1.5 px-3 py-2 text-xs font-bold text-slate-500 hover:text-red-600 bg-slate-50 hover:bg-red-50 border border-slate-200 hover:border-red-100 rounded-lg transition-all active:scale-[0.98] cursor-pointer "
+                            className="flex items-center gap-1.5 px-4 py-2 text-sm font-black bg-red-50 hover:bg-red-500 text-red-600 hover:text-white border border-red-200 hover:border-red-500 rounded-lg transition-all active:scale-[0.98] cursor-pointer "
                         >
-                            <LogOut className="w-3.5 h-3.5" />
+                            <LogOut className="w-4 h-4" />
                             ログアウト
                         </button>
                     </div>
@@ -209,25 +220,7 @@ export default function DashboardPage() {
             </header>
 
             <main className="p-6 max-w-(screen-2xl) mx-auto space-y-6">
-                <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4 bg-white p-6 rounded-2xl shadow-xs border border-slate-200/60">
-                    <div>
-                        <h2 className="text-xl font-black tracking-tight text-slate-800">
-                            週間スケジュールビュー
-                        </h2>
-                        <p className="text-xs font-bold text-slate-400 mt-0.5">
-                            時間枠をクリックしてクイックに授業枠を作成・予約できます。
-                        </p>
-                    </div>
-                    <button
-                        onClick={() =>
-                            handleCreateLesson(weekDays[0].fullDate, 1)
-                        }
-                        className="flex items-center justify-center gap-2 bg-slate-900 hover:bg-black text-white font-bold px-5 py-3 rounded-xl transition-all shadow-md active:scale-[0.98] text-sm self-start sm:self-center cursor-pointer "
-                    >
-                        <Plus className="w-4 h-4" />
-                        スケジュールを作成
-                    </button>
-                </div>
+                {/* 💡 週間スケジュールビューの大きなカードを丸ごと削除しました */}
 
                 <div className="flex items-center justify-between bg-white px-6 py-4 rounded-xl shadow-xs border border-slate-200/60">
                     <div className="flex items-center gap-4">

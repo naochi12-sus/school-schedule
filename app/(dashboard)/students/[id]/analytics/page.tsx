@@ -22,12 +22,13 @@ import {
     Tooltip,
     ResponsiveContainer,
 } from "recharts";
+import Header from "@/components/Header"; // 💡 共通ヘッダー
 
 type PaymentData = {
     payment_id: number;
     amount: number;
     payment_date: string;
-    payment_method: string; // ここを種別（月謝、入会金など）として使用
+    payment_method: string;
     notes: string;
 };
 
@@ -47,7 +48,6 @@ export default function StudentAnalyticsPage() {
     const [payments, setPayments] = useState<PaymentData[]>([]);
     const [lessonData, setLessonData] = useState<any[]>([]);
 
-    // 💡 テーブル内で直接入力・編集するためのローカル状態
     const [editingPayments, setEditingPayments] = useState<
         Record<number, PaymentData>
     >({});
@@ -55,14 +55,12 @@ export default function StudentAnalyticsPage() {
         {},
     );
 
-    // 入金集計用の年フィルター
     const [selectedYear, setSelectedYear] = useState<string>(
         new Date().getFullYear().toString(),
     );
 
     const fetchAnalyticsData = React.useCallback(async () => {
         try {
-            // 1. 生徒の名前と授業参加履歴を取得
             const { data: studentData } = await supabase
                 .from("students")
                 .select(
@@ -89,7 +87,7 @@ export default function StudentAnalyticsPage() {
 
                 const monthlyCounts: Record<string, number> = {};
                 lessons.forEach((l) => {
-                    const month = l.lesson_date.substring(0, 7); // "YYYY-MM"
+                    const month = l.lesson_date.substring(0, 7);
                     monthlyCounts[month] = (monthlyCounts[month] || 0) + 1;
                 });
 
@@ -98,7 +96,7 @@ export default function StudentAnalyticsPage() {
                 const chartData = sortedMonths.map((month) => {
                     cumulative += monthlyCounts[month];
                     return {
-                        month: month.replace("-", "/"), // "YYYY/MM"
+                        month: month.replace("-", "/"),
                         月間消化数: monthlyCounts[month],
                         累計消化数: cumulative,
                     };
@@ -107,7 +105,6 @@ export default function StudentAnalyticsPage() {
                 setLessonData(chartData);
             }
 
-            // 2. 入金履歴の取得
             const { data: paymentData } = await supabase
                 .from("payments")
                 .select("*")
@@ -117,7 +114,6 @@ export default function StudentAnalyticsPage() {
             if (paymentData) {
                 setPayments(paymentData);
 
-                // 編集用の初期状態をセット
                 const initialEditing: Record<number, PaymentData> = {};
                 paymentData.forEach((p) => {
                     initialEditing[p.payment_id] = { ...p };
@@ -149,13 +145,11 @@ export default function StudentAnalyticsPage() {
         initPage();
     }, [studentId, router, fetchAnalyticsData]);
 
-    // 選択した年のデータだけをフィルタリング
     const filteredPayments = payments.filter((p) =>
         p.payment_date.startsWith(selectedYear),
     );
     const totalAmount = filteredPayments.reduce((sum, p) => sum + p.amount, 0);
 
-    // 💡 画面上の入力変更をテンポラリの状態に反映する処理
     const handleInputChange = (
         id: number,
         field: keyof PaymentData,
@@ -170,7 +164,6 @@ export default function StudentAnalyticsPage() {
         }));
     };
 
-    // 💡 【保存】入力されたその行のデータをSupabaseにUPDATE（上書き）する処理
     const handleSaveRow = async (id: number) => {
         const rowData = editingPayments[id];
         if (!rowData) return;
@@ -197,7 +190,6 @@ export default function StudentAnalyticsPage() {
         }
     };
 
-    // 💡 【削除】その行の入金データを削除する処理
     const handleDeleteRow = async (id: number) => {
         const confirmDelete = window.confirm(
             "この入金履歴を削除してもよろしいですか？",
@@ -219,7 +211,6 @@ export default function StudentAnalyticsPage() {
         }
     };
 
-    // 💡 【新規追加】空の行を1行その場で作成する処理
     const handleAddNewRow = async () => {
         setIsLoading(true);
         const { error } = await supabase.from("payments").insert([
@@ -258,8 +249,12 @@ export default function StudentAnalyticsPage() {
     }
 
     return (
-        <div className="min-h-screen bg-slate-50 font-sans text-slate-800 p-6">
-            <div className="max-w-4xl mx-auto space-y-6">
+        <div className="min-h-screen bg-slate-50 font-sans text-slate-800">
+            {/* 💡 共通ヘッダーを配置 */}
+            <Header />
+
+            {/* 💡 ページコンテンツ全体を main で囲み、パディングを設定 */}
+            <main className="p-6 max-w-4xl mx-auto space-y-6">
                 <div className="flex items-center justify-between">
                     <button
                         onClick={() => router.push(`/students/${studentId}`)}
@@ -564,7 +559,7 @@ export default function StudentAnalyticsPage() {
                         </table>
                     </div>
                 </div>
-            </div>
+            </main>
         </div>
     );
 }

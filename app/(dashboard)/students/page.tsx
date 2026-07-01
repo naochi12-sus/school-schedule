@@ -3,15 +3,8 @@
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/utils/supabase/client";
-import {
-    ArrowLeft,
-    Plus,
-    Users,
-    Mail,
-    Calendar,
-    CreditCard,
-    ChevronRight,
-} from "lucide-react";
+import { Plus, Users, ChevronRight } from "lucide-react";
+import Header from "@/components/Header"; // 💡 共通ヘッダーを読み込み
 
 type StudentData = {
     student_id: number;
@@ -30,10 +23,8 @@ export default function StudentsListPage() {
     const [students, setStudents] = useState<StudentData[]>([]);
     const [isLoading, setIsLoading] = useState(true);
 
-    // 💡 ログインチェックとデータ取得を1つの処理にまとめました
     useEffect(() => {
         const initPage = async () => {
-            // 💡 1. まずは鉄壁ガード（ログインチェック）
             const authClient = createClient();
             const {
                 data: { user },
@@ -41,10 +32,9 @@ export default function StudentsListPage() {
 
             if (!user) {
                 router.push("/login");
-                return; // 未ログインならここで処理を完全にストップさせます
+                return;
             }
 
-            // 💡 2. ログインしていることが確認できたら、生徒データを取ってきます
             const { data, error } = await supabase
                 .from("students")
                 .select("*")
@@ -56,7 +46,6 @@ export default function StudentsListPage() {
                 setStudents(data as StudentData[]);
             }
 
-            // 💡 3. すべての準備が整ったら、ローディングの壁を解除（false）します
             setIsLoading(false);
         };
 
@@ -92,8 +81,6 @@ export default function StudentsListPage() {
         }
     };
 
-    // 💡 【ここが鉄壁ガードの壁】
-    // ログインチェックとデータ取得が終わるまで、画面全体を読み込み中にします
     if (isLoading) {
         return (
             <div className="min-h-screen bg-slate-50 flex items-center justify-center text-slate-500 font-bold">
@@ -103,36 +90,32 @@ export default function StudentsListPage() {
     }
 
     return (
-        <div className="min-h-screen bg-slate-50 font-sans text-slate-800 p-6">
-            <div className="max-w-(screen-xl) mx-auto space-y-6">
-                {/* 上部エリア */}
+        <div className="min-h-screen bg-slate-50 font-sans text-slate-800">
+            {/* 💡 ここに共通ヘッダーを配置 */}
+            <Header />
+
+            {/* 💡 ページ固有のコンテンツは <main> で囲み、ここで余白や幅を設定します */}
+            <main className="p-6 max-w-350 mx-auto space-y-6">
+                {/* 上部エリア（タイトルと新規登録ボタン） */}
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                    <div>
-                        <button
-                            onClick={() => router.push("/dashboard")}
-                            className="flex items-center gap-2 text-slate-500 hover:text-slate-800 font-bold transition-colors mb-4 cursor-pointer "
-                        >
-                            <ArrowLeft className="w-5 h-5" />
-                            スケジュール一覧に戻る
-                        </button>
-                        <div className="flex items-center gap-3">
-                            <div className="p-3 bg-white shadow-sm border border-slate-200 rounded-xl text-blue-600">
-                                <Users className="w-6 h-6" />
-                            </div>
-                            <div>
-                                <h1 className="text-2xl font-black tracking-tight text-slate-900">
-                                    生徒一覧
-                                </h1>
-                                <p className="text-sm font-bold text-slate-400 mt-0.5">
-                                    クリックすると詳細を確認できます。
-                                </p>
-                            </div>
+                    <div className="flex items-center gap-3">
+                        <div className="p-3 bg-white shadow-sm border border-slate-200 rounded-xl text-blue-600">
+                            <Users className="w-6 h-6" />
+                        </div>
+                        <div>
+                            <h1 className="text-2xl font-black tracking-tight text-slate-900">
+                                生徒一覧
+                            </h1>
+                            <p className="text-sm font-bold text-slate-400 mt-0.5">
+                                クリックすると詳細を確認できます。
+                            </p>
                         </div>
                     </div>
 
                     <button
                         onClick={() => router.push("/students/new")}
-                        className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-bold px-5 py-3 rounded-xl transition-all shadow-md active:scale-[0.98] cursor-pointer "
+                        // 💡 bg-blue-300 をより落ち着いた blue-400 にし、hover も blue-500 に調整しました
+                        className="flex items-center gap-2 bg-blue-400 hover:bg-blue-500 text-white font-bold px-5 py-3 rounded-xl transition-all shadow-md active:scale-[0.98] cursor-pointer"
                     >
                         <Plus className="w-5 h-5" />
                         新規生徒登録
@@ -141,7 +124,6 @@ export default function StudentsListPage() {
 
                 {/* テーブルエリア */}
                 <div className="bg-white rounded-2xl shadow-xl border border-slate-200/60 overflow-hidden">
-                    {/* 💡 データが0件のときの表示だけ残しています（ローディングは上の壁で処理済み） */}
                     {students.length === 0 ? (
                         <div className="p-12 text-center space-y-3">
                             <div className="text-slate-400 font-bold">
@@ -198,7 +180,7 @@ export default function StudentsListPage() {
                         </div>
                     )}
                 </div>
-            </div>
+            </main>
         </div>
     );
 }

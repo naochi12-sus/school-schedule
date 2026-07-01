@@ -19,6 +19,7 @@ import {
     ChevronRight,
     BarChart3,
 } from "lucide-react";
+import Header from "@/components/Header";
 
 type StudentDetail = {
     student_id: number;
@@ -59,7 +60,6 @@ export default function StudentDetailPage() {
     const [editJoining, setEditJoining] = useState("");
     const [editAmount, setEditAmount] = useState<number | "">("");
     const [editContent, setEditContent] = useState("");
-
     const [displayDate, setDisplayDate] = useState(new Date());
 
     useEffect(() => {
@@ -68,7 +68,6 @@ export default function StudentDetailPage() {
             const {
                 data: { user },
             } = await authClient.auth.getUser();
-
             if (!user) {
                 router.push("/login");
                 return;
@@ -82,12 +81,7 @@ export default function StudentDetailPage() {
                         *,
                         lesson_participants (
                             lessons (
-                                lesson_id,
-                                lesson_date,
-                                start_time,
-                                end_time,
-                                subject,
-                                difficulty_level
+                                lesson_id, lesson_date, start_time, end_time, subject, difficulty_level
                             )
                         )
                     `,
@@ -101,7 +95,6 @@ export default function StudentDetailPage() {
                 } else if (data) {
                     const currentData = data as unknown as StudentDetail;
                     setStudent(currentData);
-
                     setEditName(currentData.s_name);
                     setEditEmail(currentData.s_email || "");
                     setEditStatus(currentData.status);
@@ -111,17 +104,14 @@ export default function StudentDetailPage() {
                     setEditContent(currentData.s_content || "");
                 }
             }
-
             setIsPageLoading(false);
         };
-
         initPage();
     }, [router, studentId, supabase]);
 
     const handleSave = async (e: React.FormEvent) => {
         e.preventDefault();
         setIsSaving(true);
-
         const { error } = await supabase
             .from("students")
             .update({
@@ -136,60 +126,48 @@ export default function StudentDetailPage() {
             .eq("student_id", studentId);
 
         setIsSaving(false);
-
         if (error) {
             console.error("更新エラー:", error);
             alert("保存に失敗しました。");
         } else {
             alert("生徒情報を更新しました！");
             setIsEditing(false);
-            // 💡 URLパスを /students に統一
             router.push("/students");
             router.refresh();
         }
     };
 
     const handleDelete = async () => {
-        const confirmDelete = window.confirm(
-            "この生徒を削除してもよろしいですか？\n※この生徒の予約記録も一緒に削除されます。",
-        );
+        const confirmDelete =
+            window.confirm("この生徒を削除してもよろしいですか？");
         if (!confirmDelete) return;
-
         const { error } = await supabase
             .from("students")
             .delete()
             .eq("student_id", studentId);
-
-        if (error) {
-            console.error("削除エラー:", error);
-            alert("削除に失敗しました。");
-        } else {
+        if (error) alert("削除に失敗しました。");
+        else {
             alert("生徒情報を削除しました。");
             router.push("/students");
             router.refresh();
         }
     };
 
-    const handlePrevMonth = () => {
+    const handlePrevMonth = () =>
         setDisplayDate(
             new Date(displayDate.getFullYear(), displayDate.getMonth() - 1, 1),
         );
-    };
-
-    const handleNextMonth = () => {
+    const handleNextMonth = () =>
         setDisplayDate(
             new Date(displayDate.getFullYear(), displayDate.getMonth() + 1, 1),
         );
-    };
 
     const getSubjectBadgeStyle = (subject: string) => {
-        if (subject === "韓国語") {
+        if (subject === "韓国語")
             return "bg-emerald-100 text-emerald-700 border-emerald-200/60";
-        } else if (subject === "中国語") {
+        if (subject === "中国語")
             return "bg-orange-100 text-orange-700 border-orange-200/60";
-        } else {
-            return "bg-slate-100 text-slate-600 border-slate-200/60";
-        }
+        return "bg-slate-100 text-slate-600 border-slate-200/60";
     };
 
     const getLevelBadgeStyle = (level: string) => {
@@ -231,7 +209,6 @@ export default function StudentDetailPage() {
 
     const targetYear = displayDate.getFullYear();
     const targetMonth = displayDate.getMonth() + 1;
-
     const monthlyLessons =
         student.lesson_participants
             ?.filter((lp) => {
@@ -242,28 +219,25 @@ export default function StudentDetailPage() {
                     d.getMonth() + 1 === targetMonth
                 );
             })
-            .sort((a, b) => {
-                return (
+            .sort(
+                (a, b) =>
                     new Date(a.lessons!.lesson_date).getTime() -
-                    new Date(b.lessons!.lesson_date).getTime()
-                );
-            }) || [];
-
+                    new Date(b.lessons!.lesson_date).getTime(),
+            ) || [];
     const reservedCount = monthlyLessons.length;
-    const quota = student.monthly_quota;
 
     return (
-        <div className="min-h-screen bg-slate-50 font-sans text-slate-800 p-6">
-            <div className="max-w-2xl mx-auto space-y-6">
+        <div className="min-h-screen bg-slate-50 font-sans text-slate-800">
+            <Header />
+            <main className="p-6 max-w-2xl mx-auto space-y-6">
                 <div className="flex items-center justify-between">
                     <button
                         onClick={() => router.push("/students")}
-                        className="flex items-center gap-2 text-slate-500 hover:text-slate-800 font-bold transition- cursor-pointer "
+                        className="flex items-center gap-2 text-slate-500 hover:text-slate-800 font-bold transition-colors cursor-pointer"
                     >
                         <ArrowLeft className="w-5 h-5" />
                         生徒一覧に戻る
                     </button>
-
                     {!isEditing ? (
                         <div className="flex gap-2">
                             <button
@@ -274,32 +248,27 @@ export default function StudentDetailPage() {
                                 }
                                 className="flex items-center gap-1.5 px-4 py-2 bg-indigo-50 border border-indigo-200 text-indigo-700 hover:bg-indigo-100 font-bold rounded-xl shadow-xs transition-all text-sm cursor-pointer"
                             >
-                                <BarChart3 className="w-4 h-4" />
-                                グラフ
+                                <BarChart3 className="w-4 h-4" /> グラフ
                             </button>
-
                             <button
                                 onClick={() => setIsEditing(true)}
-                                className="flex items-center gap-1.5 px-4 py-2 bg-white border border-slate-200 text-blue-600 hover:bg-blue-50 font-bold rounded-xl shadow-xs transition-all text-sm cursor-pointer "
+                                className="flex items-center gap-1.5 px-4 py-2 bg-white border border-slate-200 text-blue-600 hover:bg-blue-50 font-bold rounded-xl shadow-xs transition-all text-sm cursor-pointer"
                             >
-                                <Edit className="w-4 h-4" />
-                                編集
+                                <Edit className="w-4 h-4" /> 編集
                             </button>
                             <button
                                 onClick={handleDelete}
-                                className="flex items-center gap-1.5 px-4 py-2 bg-white border border-red-100 text-red-600 hover:bg-red-50 font-bold rounded-xl shadow-xs transition-all text-sm cursor-pointer "
+                                className="flex items-center gap-1.5 px-4 py-2 bg-white border border-red-100 text-red-600 hover:bg-red-50 font-bold rounded-xl shadow-xs transition-all text-sm cursor-pointer"
                             >
-                                <Trash2 className="w-4 h-4" />
-                                削除
+                                <Trash2 className="w-4 h-4" /> 削除
                             </button>
                         </div>
                     ) : (
                         <button
                             onClick={() => setIsEditing(false)}
-                            className="flex items-center gap-1.5 px-4 py-2 bg-white border border-slate-200 text-slate-500 hover:bg-slate-100 font-bold rounded-xl shadow-xs transition-all text-sm cursor-pointer "
+                            className="flex items-center gap-1.5 px-4 py-2 bg-white border border-slate-200 text-slate-500 hover:bg-slate-100 font-bold rounded-xl shadow-xs transition-all text-sm cursor-pointer"
                         >
-                            <X className="w-4 h-4" />
-                            キャンセル
+                            <X className="w-4 h-4" /> キャンセル
                         </button>
                     )}
                 </div>
@@ -307,7 +276,143 @@ export default function StudentDetailPage() {
                 <div className="bg-white rounded-2xl shadow-xl border border-slate-200/60 overflow-hidden">
                     <div className="h-3 bg-blue-600" />
                     <div className="p-8">
-                        {!isEditing ? (
+                        {isEditing ? (
+                            <form onSubmit={handleSave} className="space-y-6">
+                                <div className="border-b border-slate-100 pb-4 mb-4">
+                                    <h2 className="text-lg font-black text-blue-600">
+                                        生徒情報の編集
+                                    </h2>
+                                </div>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <div className="space-y-2">
+                                        <label className="text-sm font-bold text-slate-700">
+                                            生徒氏名 *
+                                        </label>
+                                        <input
+                                            type="text"
+                                            required
+                                            value={editName}
+                                            onChange={(e) =>
+                                                setEditName(e.target.value)
+                                            }
+                                            className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl font-bold text-slate-700"
+                                        />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className="text-sm font-bold text-slate-700">
+                                            ステータス *
+                                        </label>
+                                        <select
+                                            value={editStatus}
+                                            onChange={(e) =>
+                                                setEditStatus(e.target.value)
+                                            }
+                                            className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl font-bold text-slate-700 cursor-pointer"
+                                        >
+                                            <option value="在籍中">
+                                                在籍中
+                                            </option>
+                                            <option value="休会中">
+                                                休会中
+                                            </option>
+                                            <option value="退会">退会</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div className="space-y-2">
+                                    <label className="text-sm font-bold text-slate-700">
+                                        メールアドレス
+                                    </label>
+                                    <input
+                                        type="email"
+                                        value={editEmail}
+                                        onChange={(e) =>
+                                            setEditEmail(e.target.value)
+                                        }
+                                        className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl font-bold text-slate-700"
+                                    />
+                                </div>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <div className="space-y-2">
+                                        <label className="text-sm font-bold text-slate-700">
+                                            月間契約数 *
+                                        </label>
+                                        <select
+                                            value={editQuota}
+                                            onChange={(e) =>
+                                                setEditQuota(
+                                                    Number(e.target.value),
+                                                )
+                                            }
+                                            className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl font-bold text-slate-700 cursor-pointer"
+                                        >
+                                            {[
+                                                0, 1, 2, 3, 4, 5, 6, 7, 8, 9,
+                                                16,
+                                            ].map((num) => (
+                                                <option key={num} value={num}>
+                                                    {num} 回 / 月
+                                                </option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className="text-sm font-bold text-slate-700">
+                                            入会日 *
+                                        </label>
+                                        <input
+                                            type="date"
+                                            required
+                                            value={editJoining}
+                                            onChange={(e) =>
+                                                setEditJoining(e.target.value)
+                                            }
+                                            className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl font-bold text-slate-700 cursor-pointer"
+                                        />
+                                    </div>
+                                </div>
+                                <div className="space-y-2">
+                                    <label className="text-sm font-bold text-slate-700">
+                                        月謝金額 (円)
+                                    </label>
+                                    <input
+                                        type="number"
+                                        value={editAmount}
+                                        onChange={(e) =>
+                                            setEditAmount(
+                                                e.target.value === ""
+                                                    ? ""
+                                                    : Number(e.target.value),
+                                            )
+                                        }
+                                        className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl font-bold text-slate-700"
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <label className="text-sm font-bold text-slate-700">
+                                        生徒メモ (任意)
+                                    </label>
+                                    <textarea
+                                        value={editContent}
+                                        onChange={(e) =>
+                                            setEditContent(e.target.value)
+                                        }
+                                        rows={4}
+                                        className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl font-bold text-slate-700 resize-none"
+                                    />
+                                </div>
+                                <button
+                                    type="submit"
+                                    disabled={isSaving}
+                                    className="w-full flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-black px-5 py-4 rounded-xl transition-all shadow-md disabled:opacity-50 mt-6 cursor-pointer"
+                                >
+                                    <Save className="w-5 h-5" />
+                                    {isSaving
+                                        ? "保存処理中..."
+                                        : "変更を保存する"}
+                                </button>
+                            </form>
+                        ) : (
                             <div className="space-y-6">
                                 <div className="flex items-center justify-between border-b border-slate-100 pb-6">
                                     <div className="flex items-center gap-4">
@@ -349,7 +454,7 @@ export default function StudentDetailPage() {
                                     <div className="space-y-1">
                                         <div className="text-xs font-bold text-slate-400 flex items-center gap-1.5">
                                             <Bookmark className="w-3.5 h-3.5 text-blue-500/70" />{" "}
-                                            現在の月間契約
+                                            月間契約
                                         </div>
                                         <div className="text-sm font-black text-slate-700">
                                             月 {student.monthly_quota} 回
@@ -358,7 +463,7 @@ export default function StudentDetailPage() {
                                     <div className="space-y-1">
                                         <div className="text-xs font-bold text-slate-400 flex items-center gap-1.5">
                                             <CreditCard className="w-3.5 h-3.5 text-blue-500/70" />{" "}
-                                            現在の月謝設定
+                                            月謝
                                         </div>
                                         <div className="text-sm font-black text-slate-700">
                                             {student.amount
@@ -370,11 +475,11 @@ export default function StudentDetailPage() {
                                 <div className="pt-4 border-t border-slate-100 space-y-2">
                                     <div className="text-xs font-bold text-slate-400 flex items-center gap-1.5">
                                         <FileText className="w-3.5 h-3.5 text-blue-500/70" />{" "}
-                                        生徒メモ・カルテ
+                                        生徒メモ
                                     </div>
-                                    <div className="p-4 bg-slate-50 border border-slate-100 rounded-xl text-sm font-bold text-slate-700 min-h-24 whitespace-pre-wrap leading-relaxed">
+                                    <div className="p-4 bg-slate-50 border border-slate-100 rounded-xl text-sm font-bold text-slate-700 min-h-24 whitespace-pre-wrap">
                                         {student.s_content || (
-                                            <span className="text-slate-300 font-normal">
+                                            <span className="text-slate-300">
                                                 メモはありません。
                                             </span>
                                         )}
@@ -384,7 +489,7 @@ export default function StudentDetailPage() {
                                     <div className="flex items-center justify-between pb-2">
                                         <button
                                             onClick={handlePrevMonth}
-                                            className="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors cursor-pointer"
+                                            className="p-1.5 text-slate-400 hover:text-blue-600 rounded-lg cursor-pointer"
                                         >
                                             <ChevronLeft className="w-5 h-5" />
                                         </button>
@@ -392,219 +497,68 @@ export default function StudentDetailPage() {
                                             {targetYear}年 {targetMonth}月{" "}
                                             <span className="text-[11px] font-bold text-slate-400 ml-1">
                                                 (予約済 {reservedCount} / 設定{" "}
-                                                {quota}回)
+                                                {student.monthly_quota}回)
                                             </span>
                                         </div>
                                         <button
                                             onClick={handleNextMonth}
-                                            className="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors cursor-pointer"
+                                            className="p-1.5 text-slate-400 hover:text-blue-600 rounded-lg cursor-pointer"
                                         >
                                             <ChevronRight className="w-5 h-5" />
                                         </button>
                                     </div>
                                     <div className="space-y-2">
-                                        {monthlyLessons.length > 0 ? (
-                                            monthlyLessons.map((lp, index) => {
-                                                const lesson = lp.lessons;
-                                                if (!lesson) return null;
-                                                return (
-                                                    <div
-                                                        key={index}
-                                                        onClick={() =>
-                                                            router.push(
-                                                                `/dashboard/lessons/${lesson.lesson_id}`,
-                                                            )
-                                                        }
-                                                        className="p-3 bg-slate-50 border border-slate-100 rounded-xl flex items-center justify-between text-xs font-bold cursor-pointer hover:bg-blue-50 hover:border-blue-200 transition-colors"
+                                        {monthlyLessons.map((lp, i) => (
+                                            <div
+                                                key={i}
+                                                onClick={() =>
+                                                    router.push(
+                                                        `/dashboard/lessons/${lp.lessons?.lesson_id}`,
+                                                    )
+                                                }
+                                                className="p-3 bg-slate-50 border border-slate-100 rounded-xl flex items-center justify-between text-xs font-bold cursor-pointer hover:bg-blue-50"
+                                            >
+                                                <div className="flex items-center gap-2">
+                                                    <span
+                                                        className={`px-2 py-0.5 border rounded font-black ${getSubjectBadgeStyle(lp.lessons?.subject || "")}`}
                                                     >
-                                                        <div className="flex items-center gap-3">
-                                                            <span
-                                                                className={`px-2 py-0.5 border rounded text-[11px] font-black ${getSubjectBadgeStyle(lesson.subject)}`}
-                                                            >
-                                                                {lesson.subject}
-                                                            </span>
-                                                            {lesson.difficulty_level && (
-                                                                <span
-                                                                    className={`px-1.5 py-0.5 border rounded text-[10px] font-black ${getLevelBadgeStyle(lesson.difficulty_level)}`}
-                                                                >
-                                                                    {
-                                                                        lesson.difficulty_level
-                                                                    }
-                                                                </span>
-                                                            )}
-                                                            <span className="text-slate-600 text-sm ml-1">
-                                                                {
-                                                                    lesson.lesson_date
-                                                                }
-                                                            </span>
-                                                        </div>
-                                                        <span className="text-slate-400 font-sans tracking-wider text-sm">
-                                                            {lesson.start_time.substring(
-                                                                0,
-                                                                5,
-                                                            )}
-                                                            〜
-                                                            {lesson.end_time.substring(
-                                                                0,
-                                                                5,
-                                                            )}
-                                                        </span>
-                                                    </div>
-                                                );
-                                            })
-                                        ) : (
-                                            <div className="text-xs text-slate-400 p-2 italic text-center bg-slate-50 rounded-xl border border-slate-100 py-6">
-                                                この月の予約レッスンはありません。
+                                                        {lp.lessons?.subject}
+                                                    </span>
+                                                    <span
+                                                        className={`px-1.5 py-0.5 border rounded font-black ${getLevelBadgeStyle(lp.lessons?.difficulty_level || "")}`}
+                                                    >
+                                                        {
+                                                            lp.lessons
+                                                                ?.difficulty_level
+                                                        }
+                                                    </span>
+                                                    <span className="text-slate-600">
+                                                        {
+                                                            lp.lessons
+                                                                ?.lesson_date
+                                                        }
+                                                    </span>
+                                                </div>
+                                                <span className="text-slate-400">
+                                                    {lp.lessons?.start_time.substring(
+                                                        0,
+                                                        5,
+                                                    )}
+                                                    〜
+                                                    {lp.lessons?.end_time.substring(
+                                                        0,
+                                                        5,
+                                                    )}
+                                                </span>
                                             </div>
-                                        )}
+                                        ))}
                                     </div>
                                 </div>
                             </div>
-                        ) : (
-                            // ... 編集フォーム部分は前回と同じ ...
-                            <form onSubmit={handleSave} className="space-y-6">
-                                {/* (中略：編集フォーム部分は省略しますがそのまま維持してください) */}
-                                <div className="border-b border-slate-100 pb-4 mb-4">
-                                    <h2 className="text-lg font-black text-blue-600">
-                                        生徒情報の編集
-                                    </h2>
-                                    <p className="text-xs font-bold text-slate-400 mt-1">
-                                        内容を書き換えて、一番下の保存ボタンを押してください。
-                                    </p>
-                                </div>
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                    <div className="space-y-2">
-                                        <label className="text-sm font-bold text-slate-700">
-                                            生徒氏名 *
-                                        </label>
-                                        <input
-                                            type="text"
-                                            required
-                                            value={editName}
-                                            onChange={(e) =>
-                                                setEditName(e.target.value)
-                                            }
-                                            className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 font-bold text-slate-700"
-                                        />
-                                    </div>
-                                    <div className="space-y-2">
-                                        <label className="text-sm font-bold text-slate-700">
-                                            ステータス *
-                                        </label>
-                                        <select
-                                            value={editStatus}
-                                            onChange={(e) =>
-                                                setEditStatus(e.target.value)
-                                            }
-                                            className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 font-bold text-slate-700 cursor-pointer "
-                                        >
-                                            <option value="在籍中">
-                                                在籍中
-                                            </option>
-                                            <option value="休会中">
-                                                休会中
-                                            </option>
-                                            <option value="退会">退会</option>
-                                        </select>
-                                    </div>
-                                </div>
-                                <div className="space-y-2">
-                                    <label className="text-sm font-bold text-slate-700 flex items-center gap-2">
-                                        メールアドレス
-                                    </label>
-                                    <input
-                                        type="email"
-                                        value={editEmail}
-                                        onChange={(e) =>
-                                            setEditEmail(e.target.value)
-                                        }
-                                        className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 font-bold text-slate-700"
-                                    />
-                                </div>
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                    <div className="space-y-2">
-                                        <label className="text-sm font-bold text-slate-700">
-                                            月間契約数 *
-                                        </label>
-                                        <select
-                                            value={editQuota}
-                                            onChange={(e) =>
-                                                setEditQuota(
-                                                    Number(e.target.value),
-                                                )
-                                            }
-                                            className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 font-bold text-slate-700 cursor-pointer "
-                                        >
-                                            {[
-                                                0, 1, 2, 3, 4, 5, 6, 7, 8, 9,
-                                                16,
-                                            ].map((num) => (
-                                                <option key={num} value={num}>
-                                                    {num} 回 / 月
-                                                </option>
-                                            ))}
-                                        </select>
-                                    </div>
-                                    <div className="space-y-2">
-                                        <label className="text-sm font-bold text-slate-700">
-                                            入会日 *
-                                        </label>
-                                        <input
-                                            type="date"
-                                            required
-                                            value={editJoining}
-                                            onChange={(e) =>
-                                                setEditJoining(e.target.value)
-                                            }
-                                            className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 font-bold text-slate-700 cursor-pointer "
-                                        />
-                                    </div>
-                                </div>
-                                <div className="space-y-2">
-                                    <label className="text-sm font-bold text-slate-700">
-                                        月謝金額 (円)
-                                    </label>
-                                    <input
-                                        type="number"
-                                        value={editAmount}
-                                        onChange={(e) =>
-                                            setEditAmount(
-                                                e.target.value === ""
-                                                    ? ""
-                                                    : Number(e.target.value),
-                                            )
-                                        }
-                                        className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 font-bold text-slate-700"
-                                    />
-                                </div>
-                                <div className="space-y-2">
-                                    <label className="text-sm font-bold text-slate-700">
-                                        生徒メモ (任意)
-                                    </label>
-                                    <textarea
-                                        value={editContent}
-                                        onChange={(e) =>
-                                            setEditContent(e.target.value)
-                                        }
-                                        rows={4}
-                                        className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 font-bold text-slate-700 resize-none"
-                                    />
-                                </div>
-                                <button
-                                    type="submit"
-                                    disabled={isSaving}
-                                    className="w-full flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-black px-5 py-4 rounded-xl transition-all shadow-md disabled:opacity-50 mt-6 cursor-pointer "
-                                >
-                                    <Save className="w-5 h-5" />
-                                    {isSaving
-                                        ? "保存処理中..."
-                                        : "変更を保存する"}
-                                </button>
-                            </form>
                         )}
                     </div>
                 </div>
-            </div>
+            </main>
         </div>
     );
 }
