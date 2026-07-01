@@ -32,7 +32,6 @@ export default function DashboardPage() {
     const router = useRouter();
     const supabase = createClient();
 
-    // 💡 【変更点】固定の日付("2026-06-23")を削除し、new Date()で「常に今日」を取得するようにしました
     const [currentDate, setCurrentDate] = useState(new Date());
 
     const [lessons, setLessons] = useState<LessonData[]>([]);
@@ -97,10 +96,16 @@ export default function DashboardPage() {
         const dayDate = new Date(startOfWeek);
         dayDate.setDate(startOfWeek.getDate() + index);
         const dayLabels = ["月", "火", "水", "木", "金", "土", "日"];
+
+        // 💡 修正箇所：toISOString() を使わず、ローカル時間（日本時間）のまま日付文字列を作成します
+        const y = dayDate.getFullYear();
+        const m = String(dayDate.getMonth() + 1).padStart(2, "0");
+        const d = String(dayDate.getDate()).padStart(2, "0");
+
         return {
             name: dayLabels[index],
             dateString: `${dayDate.getMonth() + 1}/${dayDate.getDate()}`,
-            fullDate: dayDate.toISOString().split("T")[0],
+            fullDate: `${y}-${m}-${d}`, // 例: "2026-07-01"
         };
     });
 

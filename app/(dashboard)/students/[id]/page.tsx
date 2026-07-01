@@ -34,8 +34,9 @@ type StudentDetail = {
             lesson_id: number;
             lesson_date: string;
             start_time: string;
-            end_time: string; // 💡 ここに end_time を追加してエラーを解消しました！
+            end_time: string;
             subject: string;
+            difficulty_level: string;
         };
     }[];
 };
@@ -56,9 +57,7 @@ export default function StudentDetailPage() {
     const [editStatus, setEditStatus] = useState("在籍中");
     const [editQuota, setEditQuota] = useState(4);
     const [editJoining, setEditJoining] = useState("");
-    const [editAmount, setEditAmount] = useState<
-        number | " text-slate-700 font-black flex items-center gap-2" | ""
-    >("");
+    const [editAmount, setEditAmount] = useState<number | "">("");
     const [editContent, setEditContent] = useState("");
 
     const [displayDate, setDisplayDate] = useState(new Date());
@@ -87,7 +86,8 @@ export default function StudentDetailPage() {
                                 lesson_date,
                                 start_time,
                                 end_time,
-                                subject
+                                subject,
+                                difficulty_level
                             )
                         )
                     `,
@@ -143,6 +143,7 @@ export default function StudentDetailPage() {
         } else {
             alert("生徒情報を更新しました！");
             setIsEditing(false);
+            // 💡 URLパスを /students に統一
             router.push("/students");
             router.refresh();
         }
@@ -188,6 +189,21 @@ export default function StudentDetailPage() {
             return "bg-orange-100 text-orange-700 border-orange-200/60";
         } else {
             return "bg-slate-100 text-slate-600 border-slate-200/60";
+        }
+    };
+
+    const getLevelBadgeStyle = (level: string) => {
+        switch (level) {
+            case "入門":
+                return "text-slate-500 bg-slate-100 border-slate-200";
+            case "初級":
+                return "text-blue-600 bg-blue-50 border-blue-200";
+            case "中級":
+                return "text-indigo-600 bg-indigo-50 border-indigo-200";
+            case "上級":
+                return "text-purple-600 bg-purple-50 border-purple-200";
+            default:
+                return "text-slate-500 bg-slate-100 border-slate-200";
         }
     };
 
@@ -290,7 +306,6 @@ export default function StudentDetailPage() {
 
                 <div className="bg-white rounded-2xl shadow-xl border border-slate-200/60 overflow-hidden">
                     <div className="h-3 bg-blue-600" />
-
                     <div className="p-8">
                         {!isEditing ? (
                             <div className="space-y-6">
@@ -312,7 +327,6 @@ export default function StudentDetailPage() {
                                         {student.status}
                                     </span>
                                 </div>
-
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                                     <div className="space-y-1">
                                         <div className="text-xs font-bold text-slate-400 flex items-center gap-1.5">
@@ -335,7 +349,7 @@ export default function StudentDetailPage() {
                                     <div className="space-y-1">
                                         <div className="text-xs font-bold text-slate-400 flex items-center gap-1.5">
                                             <Bookmark className="w-3.5 h-3.5 text-blue-500/70" />{" "}
-                                            月間契約回数
+                                            現在の月間契約
                                         </div>
                                         <div className="text-sm font-black text-slate-700">
                                             月 {student.monthly_quota} 回
@@ -344,7 +358,7 @@ export default function StudentDetailPage() {
                                     <div className="space-y-1">
                                         <div className="text-xs font-bold text-slate-400 flex items-center gap-1.5">
                                             <CreditCard className="w-3.5 h-3.5 text-blue-500/70" />{" "}
-                                            月謝設定金額
+                                            現在の月謝設定
                                         </div>
                                         <div className="text-sm font-black text-slate-700">
                                             {student.amount
@@ -353,7 +367,6 @@ export default function StudentDetailPage() {
                                         </div>
                                     </div>
                                 </div>
-
                                 <div className="pt-4 border-t border-slate-100 space-y-2">
                                     <div className="text-xs font-bold text-slate-400 flex items-center gap-1.5">
                                         <FileText className="w-3.5 h-3.5 text-blue-500/70" />{" "}
@@ -367,7 +380,6 @@ export default function StudentDetailPage() {
                                         )}
                                     </div>
                                 </div>
-
                                 <div className="pt-4 border-t border-slate-100 space-y-3">
                                     <div className="flex items-center justify-between pb-2">
                                         <button
@@ -376,15 +388,13 @@ export default function StudentDetailPage() {
                                         >
                                             <ChevronLeft className="w-5 h-5" />
                                         </button>
-
-                                        <div className="text-sm font-black text-slate-700 flex items-center gap-2">
-                                            {targetYear}年 {targetMonth}月
+                                        <div className="text-sm font-black text-slate-700">
+                                            {targetYear}年 {targetMonth}月{" "}
                                             <span className="text-[11px] font-bold text-slate-400 ml-1">
                                                 (予約済 {reservedCount} / 設定{" "}
                                                 {quota}回)
                                             </span>
                                         </div>
-
                                         <button
                                             onClick={handleNextMonth}
                                             className="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors cursor-pointer"
@@ -392,7 +402,6 @@ export default function StudentDetailPage() {
                                             <ChevronRight className="w-5 h-5" />
                                         </button>
                                     </div>
-
                                     <div className="space-y-2">
                                         {monthlyLessons.length > 0 ? (
                                             monthlyLessons.map((lp, index) => {
@@ -401,7 +410,12 @@ export default function StudentDetailPage() {
                                                 return (
                                                     <div
                                                         key={index}
-                                                        className="p-3 bg-slate-50 border border-slate-100 rounded-xl flex items-center justify-between text-xs font-bold"
+                                                        onClick={() =>
+                                                            router.push(
+                                                                `/dashboard/lessons/${lesson.lesson_id}`,
+                                                            )
+                                                        }
+                                                        className="p-3 bg-slate-50 border border-slate-100 rounded-xl flex items-center justify-between text-xs font-bold cursor-pointer hover:bg-blue-50 hover:border-blue-200 transition-colors"
                                                     >
                                                         <div className="flex items-center gap-3">
                                                             <span
@@ -409,7 +423,16 @@ export default function StudentDetailPage() {
                                                             >
                                                                 {lesson.subject}
                                                             </span>
-                                                            <span className="text-slate-600 text-sm">
+                                                            {lesson.difficulty_level && (
+                                                                <span
+                                                                    className={`px-1.5 py-0.5 border rounded text-[10px] font-black ${getLevelBadgeStyle(lesson.difficulty_level)}`}
+                                                                >
+                                                                    {
+                                                                        lesson.difficulty_level
+                                                                    }
+                                                                </span>
+                                                            )}
+                                                            <span className="text-slate-600 text-sm ml-1">
                                                                 {
                                                                     lesson.lesson_date
                                                                 }
@@ -438,7 +461,9 @@ export default function StudentDetailPage() {
                                 </div>
                             </div>
                         ) : (
+                            // ... 編集フォーム部分は前回と同じ ...
                             <form onSubmit={handleSave} className="space-y-6">
+                                {/* (中略：編集フォーム部分は省略しますがそのまま維持してください) */}
                                 <div className="border-b border-slate-100 pb-4 mb-4">
                                     <h2 className="text-lg font-black text-blue-600">
                                         生徒情報の編集
@@ -447,7 +472,6 @@ export default function StudentDetailPage() {
                                         内容を書き換えて、一番下の保存ボタンを押してください。
                                     </p>
                                 </div>
-
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                     <div className="space-y-2">
                                         <label className="text-sm font-bold text-slate-700">
@@ -484,7 +508,6 @@ export default function StudentDetailPage() {
                                         </select>
                                     </div>
                                 </div>
-
                                 <div className="space-y-2">
                                     <label className="text-sm font-bold text-slate-700 flex items-center gap-2">
                                         メールアドレス
@@ -498,7 +521,6 @@ export default function StudentDetailPage() {
                                         className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 font-bold text-slate-700"
                                     />
                                 </div>
-
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                     <div className="space-y-2">
                                         <label className="text-sm font-bold text-slate-700">
@@ -538,7 +560,6 @@ export default function StudentDetailPage() {
                                         />
                                     </div>
                                 </div>
-
                                 <div className="space-y-2">
                                     <label className="text-sm font-bold text-slate-700">
                                         月謝金額 (円)
@@ -556,7 +577,6 @@ export default function StudentDetailPage() {
                                         className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 font-bold text-slate-700"
                                     />
                                 </div>
-
                                 <div className="space-y-2">
                                     <label className="text-sm font-bold text-slate-700">
                                         生徒メモ (任意)
@@ -570,7 +590,6 @@ export default function StudentDetailPage() {
                                         className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 font-bold text-slate-700 resize-none"
                                     />
                                 </div>
-
                                 <button
                                     type="submit"
                                     disabled={isSaving}
